@@ -8,6 +8,7 @@
  *   ② 渲染路径：boot → start → renderAll 全链路
  *   ③ 部署形态：file:// 内联 vs http:// 外置 vs 两者皆无
  *   ④ 端到端：真实答题闭环（答题→判分→错题入池→跨组卷保留→重做）
+ *   ⑤ 云同步：Gist 上传/下载/冲突/凭证隔离/自动上传/安静通道
  */
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -19,6 +20,7 @@ const TESTS = [
   ['渲染路径', 'test-render.js', '_render.txt'],
   ['部署形态', 'test-paths.js', '_paths.txt'],
   ['端到端流程', 'test-e2e.js', '_e2e.txt'],
+  ['云同步', 'test-sync.js', '_sync.txt'],
 ];
 
 let totalFail = 0;

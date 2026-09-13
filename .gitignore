@@ -7,6 +7,7 @@ tools/_test.txt
 tools/_render.txt
 tools/_paths.txt
 tools/_e2e.txt
+tools/_sync.txt
 tools/_diag.*
 
 # 改造前的一次性备份（build.js 用它提取旧错题池顺序快照，勿删）

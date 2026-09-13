@@ -59,6 +59,39 @@
   .pillbtn.chk input{margin:0;accent-color:var(--brand);cursor:pointer}
   .pillbtn.chk:has(input:checked){background:var(--brand-soft);border-color:#bcd4fb;color:var(--brand)}
 
+  /* ---------- 云同步面板 ---------- */
+  .syncbtn{position:relative}
+  .syncbtn .dotmark{display:inline-block;width:7px;height:7px;border-radius:99px;
+    background:#c9d1da;margin-right:6px;vertical-align:1px}
+  .syncbtn.on .dotmark{background:var(--green)}
+  .syncpanel{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--ink-2)}
+  .syncpanel.hide{display:none}
+  .syncpanel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .syncpanel .row:last-child{margin-bottom:0}
+  .syncpanel input[type=password],.syncpanel input[type=text]{
+    flex:1 1 240px;min-width:180px;padding:6px 9px;border:1px solid var(--line);
+    border-radius:7px;font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;
+    color:var(--ink);background:#fff}
+  .syncpanel input[type=password]:focus,.syncpanel input[type=text]:focus{
+    outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .syncpanel .hint{font-size:12px;color:var(--ink-3);line-height:1.6}
+  .syncpanel .status{font-size:12.5px;color:var(--ink-2)}
+  .syncpanel .status b{color:var(--ink)}
+  .syncpanel .status.err{color:var(--red)}
+  .syncpanel .status.ok{color:var(--green)}
+  .syncpanel a{color:var(--brand)}
+  .histwrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:12px}
+  .histwrap.hide{display:none}
+  .histwrap h3{font-size:13.5px;margin:0 0 10px;color:var(--ink)}
+  .histbar{display:flex;align-items:flex-end;gap:4px;height:64px;margin-bottom:6px}
+  .histbar i{flex:1 1 0;min-width:3px;background:var(--brand);border-radius:3px 3px 0 0;
+    opacity:.85;transition:opacity .15s}
+  .histbar i:hover{opacity:1}
+  .histlegend{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3)}
+  .histempty{font-size:12.5px;color:var(--ink-3)}
+
   /* ---------- 状态条 ---------- */
   .statbar{display:flex;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);
     border-radius:10px;padding:10px 15px;font-size:13px;color:var(--ink-2);margin-bottom:10px}
@@ -246,6 +279,44 @@
       <input type="checkbox" id="composeSeed" checked><span>可复现随机</span>
     </label>
     <button class="pillbtn" id="reshuffle" title="换一套题（重新随机）">🎲 换一套</button>
+    <button class="pillbtn syncbtn" id="syncBtn" title="多端同步：把错题池、组卷参数与答题历史存到 GitHub Gist">
+      <span class="dotmark"></span>☁️ 同步
+    </button>
+  </div>
+
+  <!-- 云同步面板（默认收起） -->
+  <div class="syncpanel hide" id="syncPanel">
+    <div class="row">
+      <input type="password" id="csToken" placeholder="GitHub token（只需 gist 权限）" autocomplete="off" spellcheck="false">
+      <button class="pillbtn" id="csConnect">连接</button>
+      <button class="pillbtn" id="csDisconnect">断开</button>
+    </div>
+    <div class="row">
+      <span class="status" id="csStatus">未连接</span>
+    </div>
+    <div class="row">
+      <button class="pillbtn" id="csUpload">⬆ 上传到云端</button>
+      <button class="pillbtn" id="csDownload">⬇ 从云端下载</button>
+      <label class="pillbtn chk" id="csAutoLabel" title="答题后 8 秒自动上传（云端有更新时会自动暂停并提示）">
+        <input type="checkbox" id="csAuto" checked><span>自动上传</span>
+      </label>
+      <label class="pillbtn chk" id="csHistLabel" title="显示每次交卷的正确率趋势">
+        <input type="checkbox" id="csHist"><span>答题历史</span>
+      </label>
+    </div>
+    <div class="hint">
+      在 GitHub → Settings → Developer settings → Personal access tokens 生成 token，<b>只勾 <code>gist</code></b> 一项。
+      数据存在你自己的 <b>私密 Gist</b> 里；token 只保存在本机浏览器，不会写进页面文件。
+      手机 / 电脑各填一次同一个 token 即可互通。
+    </div>
+  </div>
+
+  <!-- 答题历史趋势（默认收起） -->
+  <div class="histwrap hide" id="histWrap">
+    <h3>答题历史（最近 <span id="histN">0</span> 次交卷）</h3>
+    <div class="histbar" id="histBar"></div>
+    <div class="histlegend" id="histLegend"></div>
+  </div>
   </div>
 
   <div class="statbar" id="statbar"></div>
@@ -328,7 +399,17 @@ const LETTERS = "ABCDEFGH";
 /* 错题池存放题目的稳定 id（如 ch01-07），不是数组下标。
    —— 下标会随组卷顺序变化，开了随机组题就会指错题。 */
 function loadWrong(){ try{ const v=JSON.parse(localStorage.getItem(LS_WRONG)||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
-function saveWrong(a){ try{ localStorage.setItem(LS_WRONG, JSON.stringify(a)); }catch(e){} }
+/* 云同步落盘期间置 true：避免「下载云端数据」本身被记成本机修改而触发回传 */
+let csApplying = false;
+
+function saveWrong(a){
+  try{ localStorage.setItem(LS_WRONG, JSON.stringify(a)); }catch(e){}
+  /* 错题池是用户真实操作产生的状态 → 计入本地修改并排自动上传 */
+  if (!csApplying && typeof saveCS === "function"){
+    try{ saveCS({}, false); }catch(e){}
+    if (window.CloudSync && CloudSync.scheduleAutoPush) CloudSync.scheduleAutoPush();
+  }
+}
 function addWrong(id){ const w=loadWrong(); if(id && w.indexOf(id)<0){ w.push(id); saveWrong(w); } }
 function delWrong(id){ const w=loadWrong(); const k=w.indexOf(id); if(k>=0){ w.splice(k,1); saveWrong(w); } }
 
@@ -510,6 +591,23 @@ function gradeAll(){
     if (ok) delWrong(x.q.id); else addWrong(x.q.id);
   });
   state.graded = true;
+
+  /* 记录一次交卷（答题历史，用于进步曲线 + 跨端同步） */
+  (function recordHistory(){
+    const graded = Object.keys(state.results).length;
+    if (!graded) return;                       /* 一题没答不记，避免脏数据 */
+    const right = Object.keys(state.results).filter(k => state.results[k].ok).length;
+    pushHist({
+      t: Date.now(),
+      total: state.queue.length,
+      graded: graded,
+      right: right,
+      pct: Math.round(right / graded * 100),
+      mode: state.mode,
+    });
+    renderHist();
+  })();
+
   renderSheet(); refreshNav(); refreshStats(); refreshPager();
   window.scrollTo({top:0, behavior:"smooth"});
 }
@@ -859,6 +957,378 @@ function syncCompose(){
   if (d) d.checked = state.dedup;
   if (sd) sd.checked = state.seed;
 }
+
+/* =========================================================
+   云同步（GitHub Gist）
+   - api.github.com 官方支持任意 origin 的 CORS，浏览器可直连，无需后端
+   - 只同步「状态」：错题池 / 组卷参数 / 答题历史。题库正文由 git 管。
+   - token 只存本机 localStorage，绝不写进页面文件、绝不上云
+   ========================================================= */
+const LS_CS   = "aag_quiz_cs_v1";      /* 云同步凭证 + 对齐点（永不上云） */
+const LS_HIST = "aag_quiz_hist_v1";    /* 答题历史（最近 N 次交卷） */
+const GIST_FILE = "aag-quiz-data.json";
+const GIST_DESC = "AiAgentGuide 测验 · 数据同步（自动生成）";
+const HIST_MAX = 120;
+
+function loadCS(){
+  try{
+    const c = JSON.parse(localStorage.getItem(LS_CS) || "null");
+    if (c && typeof c === "object") return {
+      token: c.token || "", gistId: c.gistId || "",
+      autoPush: c.autoPush !== false,
+      showHist: !!c.showHist,
+      syncedAt: c.syncedAt || 0,
+      lastLocalWrite: c.lastLocalWrite || 0,
+    };
+  }catch(e){}
+  return { token:"", gistId:"", autoPush:true, showHist:false, syncedAt:0, lastLocalWrite:0 };
+}
+/* silent=true 时只写盘，不更新 lastLocalWrite、不触发自动上传
+   —— 防止「写状态 → 判定有变更 → 上传 → 写状态」无限循环烧光限流 */
+function saveCS(cs, silent){
+  try{
+    const cur = loadCS();
+    const next = Object.assign({}, cur, cs || {});
+    if (!silent) next.lastLocalWrite = Date.now();
+    localStorage.setItem(LS_CS, JSON.stringify(next));
+    return next;
+  }catch(e){ return loadCS(); }
+}
+
+function loadHist(){
+  try{
+    const a = JSON.parse(localStorage.getItem(LS_HIST) || "[]");
+    return Array.isArray(a) ? a : [];
+  }catch(e){ return []; }
+}
+function pushHist(rec){
+  const a = loadHist();
+  a.push(rec);
+  while (a.length > HIST_MAX) a.shift();
+  try{ localStorage.setItem(LS_HIST, JSON.stringify(a)); }catch(e){}
+  saveCS({}, false);   /* 用户真实操作 → 计入本地修改时间 */
+  if (window.CloudSync && CloudSync.scheduleAutoPush) CloudSync.scheduleAutoPush();
+  return a;
+}
+
+/* 打包上云的数据：只含状态，绝不含 token / gistId */
+function collectPayload(){
+  return {
+    app: "aag-quiz",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    wrong: loadWrong(),
+    compose: (function(){ loadCompose(); return {
+      size: state.size, weight: state.weight, dedup: state.dedup, seed: state.seed }; })(),
+    hist: loadHist(),
+  };
+}
+
+/* 用云端数据覆盖本机（调用方负责先确认） */
+function applyRemote(data){
+  if (!data || typeof data !== "object" || !Array.isArray(data.wrong))
+    throw new Error("云端数据格式不正确（缺少 wrong 数组）");
+  csApplying = true;
+  try{
+    saveWrong(data.wrong.filter(x => typeof x === "string"));
+    if (data.compose && typeof data.compose === "object"){
+      if (typeof data.compose.size === "number") state.size = data.compose.size;
+      if (data.compose.weight) state.weight = data.compose.weight;
+      if (typeof data.compose.dedup === "boolean") state.dedup = data.compose.dedup;
+      if (typeof data.compose.seed === "boolean") state.seed = data.compose.seed;
+      saveCompose();
+    }
+    if (Array.isArray(data.hist)){
+      const h = data.hist.slice(-HIST_MAX);
+      try{ localStorage.setItem(LS_HIST, JSON.stringify(h)); }catch(e){}
+    }
+  } finally { csApplying = false; }
+  syncCompose();
+  renderHist();
+  if (window.CloudSync) CloudSync.refreshUI();
+}
+
+const CloudSync = (function(){
+  let busy = false, pushTimer = null, lastErr = "";
+
+  function cfg(){ return loadCS(); }
+  function ui(){
+    const c = cfg();
+    return { configured: !!c.token, busy, err: lastErr,
+             gistId: c.gistId, autoPush: c.autoPush, showHist: c.showHist, syncedAt: c.syncedAt };
+  }
+
+  function api(path, opts){
+    const c = cfg();
+    if (!c.token) return Promise.reject(new Error("尚未连接（未填 token）"));
+    return fetch("https://api.github.com" + path, Object.assign({}, opts, {
+      headers: Object.assign({
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer " + c.token,
+        "Content-Type": "application/json",
+      }, (opts && opts.headers) || {}),
+    })).then(function(res){
+      if (!res.ok){
+        if (res.status === 401) throw new Error("token 无效（401）");
+        if (res.status === 403) throw new Error("无权限或超出 GitHub 限流（403）");
+        if (res.status === 404) throw new Error("Gist 不存在（404）");
+        throw new Error("GitHub API " + res.status);
+      }
+      return res.json();
+    });
+  }
+
+  /* 新设备只有 token、没有 gistId 时，靠描述匹配找回同一份云端数据，
+     避免误建第二个 Gist 导致「A 设备传的 B 设备看不到」 */
+  function findExistingGist(){
+    const found = [];
+    function page(n){
+      if (n > 3) return Promise.resolve();
+      return api("/gists?per_page=100&page=" + n).then(function(list){
+        if (!Array.isArray(list) || !list.length) return;
+        list.forEach(function(g){ if (g && g.description === GIST_DESC) found.push(g); });
+        if (list.length < 100) return;
+        return page(n + 1);
+      });
+    }
+    return page(1).then(function(){
+      if (!found.length) return { id: null, total: 0 };
+      found.sort(function(a,b){ return Date.parse(b.updated_at||0) - Date.parse(a.updated_at||0); });
+      return { id: found[0].id, total: found.length };
+    });
+  }
+
+  function fetchRemote(){
+    const c = cfg();
+    if (!c.gistId) return Promise.resolve(null);
+    return api("/gists/" + c.gistId).then(function(g){
+      const f = g.files && g.files[GIST_FILE];
+      if (!f) return null;
+      if (f.truncated && f.raw_url){
+        return fetch(f.raw_url).then(function(r){ return r.json(); });
+      }
+      return JSON.parse(f.content);
+    });
+  }
+
+  function resolveRemote(){
+    const c = cfg();
+    if (c.gistId) return fetchRemote();
+    return findExistingGist().then(function(ex){
+      if (ex.id){ saveCS({ gistId: ex.id }, true); return fetchRemote(); }
+      return null;
+    });
+  }
+
+  function ensureGist(){
+    const c = cfg();
+    if (c.gistId) return Promise.resolve(c.gistId);
+    return findExistingGist().then(function(ex){
+      if (ex.id){ saveCS({ gistId: ex.id }, true); return ex.id; }
+      return api("/gists", { method:"POST", body: JSON.stringify({
+        description: GIST_DESC,
+        public: false,
+        files: (function(){ const o = {}; o[GIST_FILE] = { content: JSON.stringify(collectPayload()) }; return o; })(),
+      })}).then(function(g){ saveCS({ gistId: g.id }, true); return g.id; });
+    });
+  }
+
+  function push(){
+    return ensureGist().then(function(id){
+      const body = { files: (function(){ const o = {}; o[GIST_FILE] = { content: JSON.stringify(collectPayload()) }; return o; })() };
+      return api("/gists/" + id, { method:"PATCH", body: JSON.stringify(body) })
+        .then(function(){ saveCS({ syncedAt: Date.now() }, true); });
+    });
+  }
+
+  function verifyToken(token){
+    return fetch("https://api.github.com/gists?per_page=1", {
+      headers: { "Accept":"application/vnd.github+json", "Authorization":"Bearer " + token },
+    }).then(function(res){
+      if (res.status === 401) throw new Error("token 无效，请检查是否复制完整");
+      if (res.status === 403) throw new Error("token 权限不足或被限流（403）");
+      if (!res.ok) throw new Error("GitHub API " + res.status);
+      return true;
+    });
+  }
+
+  function upload(){
+    if (busy) return Promise.resolve();
+    busy = true; refreshUI();
+    return resolveRemote().then(function(remote){
+      if (remote){
+        const rt = Date.parse(remote.exportedAt) || 0;
+        const sa = cfg().syncedAt || 0;
+        if (rt > sa && !confirm(
+          "云端数据更新于 " + new Date(rt).toLocaleString() + "（可能来自其他设备）。\n" +
+          "现在上传会覆盖云端的这些改动，继续吗？"
+        )) { return; }
+      }
+      return push().then(function(){ lastErr=""; toast("已上传到云端"); });
+    }).catch(function(e){ lastErr = e.message; toast("上传失败：" + e.message); })
+      .then(function(){ busy = false; refreshUI(); });
+  }
+
+  function download(){
+    if (busy) return Promise.resolve();
+    busy = true; refreshUI();
+    return resolveRemote().then(function(data){
+      if (!data){ toast("云端还没有数据，请先在另一台设备上「上传到云端」"); return; }
+      const rt = Date.parse(data.exportedAt) || 0;
+      const lt = cfg().lastLocalWrite || 0;
+      if (!confirm(
+        "云端时间：" + new Date(rt).toLocaleString() +
+        "\n本机最后修改：" + (lt ? new Date(lt).toLocaleString() : "无记录") +
+        "\n\n确定用云端数据覆盖本机吗？"
+      )) return;
+      applyRemote(data);
+      saveCS({ syncedAt: Date.now() }, true);
+      lastErr = "";
+      toast("已从云端恢复");
+    }).catch(function(e){ lastErr = e.message; toast("下载失败：" + e.message); })
+      .then(function(){ busy = false; refreshUI(); });
+  }
+
+  function scheduleAutoPush(){
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(autoPushNow, 8000);
+  }
+  function autoPushNow(){
+    const c = cfg();
+    if (!c.token || !c.autoPush || busy) return;
+    if ((c.lastLocalWrite || 0) <= (c.syncedAt || 0)) return;
+    resolveRemote().then(function(remote){
+      if (remote){
+        const rt = Date.parse(remote.exportedAt) || 0;
+        if (rt > (c.syncedAt || 0)){ toast("云端有较新数据，已暂停自动上传，请手动「从云端下载」"); return; }
+      }
+      return push();
+    }).catch(function(){ /* 自动上传失败静默，避免打扰 */ });
+  }
+
+  function setToken(token){
+    return verifyToken(token).then(function(){
+      saveCS({ token: token }, true);
+      lastErr = "";
+    });
+  }
+  function setAuto(v){ saveCS({ autoPush: !!v }, true); }
+  function setShowHist(v){ saveCS({ showHist: !!v }, true); renderHist(); }
+  function disconnect(){
+    if (!confirm("断开后本机不再同步（云端 Gist 会保留，作为备份）。继续？")) return;
+    saveCS({ token:"", gistId:"", syncedAt:0 }, true);
+    lastErr = "";
+    refreshUI();
+    toast("已断开云同步");
+  }
+
+  /* ---------- 面板 UI ---------- */
+  function fmt(ts){
+    if (!ts) return "从未";
+    const d = new Date(ts);
+    const p = function(n){ return (n < 10 ? "0" : "") + n; };
+    return (d.getMonth()+1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  function refreshUI(){
+    const c = cfg(), u = ui();
+    const btn = $("syncBtn"), panel = $("syncPanel");
+    const st = $("csStatus"), tok = $("csToken");
+    const au = $("csAuto"), hl = $("csHist");
+    if (btn) btn.classList.toggle("on", u.configured);
+    if (tok && document.activeElement !== tok) tok.value = c.token;
+    if (au) au.checked = c.autoPush;
+    if (hl) hl.checked = c.showHist;
+    if (st){
+      st.className = "status" + (lastErr ? " err" : (u.configured ? " ok" : ""));
+      if (lastErr) st.innerHTML = "⚠️ " + lastErr;
+      else if (!u.configured) st.textContent = "未连接 —— 填入 token 后点「连接」";
+      else st.innerHTML = "已连接 · 上次同步 <b>" + fmt(c.syncedAt) +
+        "</b> · 本机修改 <b>" + fmt(c.lastLocalWrite) + "</b>" +
+        (c.gistId ? " · Gist <b>" + c.gistId.slice(0, 8) + "…</b>" : "");
+    }
+    if (panel && u.showHist === undefined) { /* noop */ }
+    renderHist();
+  }
+
+  return {
+    ui: ui, refreshUI: refreshUI, scheduleAutoPush: scheduleAutoPush,
+    upload: upload, download: download, setToken: setToken,
+    setAuto: setAuto, setShowHist: setShowHist, disconnect: disconnect,
+  };
+})();
+
+/* ---------- 答题历史趋势 ---------- */
+function renderHist(){
+  const wrap = $("histWrap"), bar = $("histBar"), lg = $("histLegend"), n = $("histN");
+  if (!wrap) return;
+  const c = loadCS();
+  wrap.classList.toggle("hide", !c.showHist);
+  if (!c.showHist) return;
+  const h = loadHist();
+  if (n) n.textContent = String(h.length);
+  if (!h.length){
+    if (bar) bar.innerHTML = '<div class="histempty">还没有交卷记录，做完一套并交卷后就会出现。</div>';
+    if (lg) lg.innerHTML = "";
+    return;
+  }
+  const max = Math.max.apply(null, h.map(function(x){ return x.pct || 0; }).concat([100]));
+  if (bar) bar.innerHTML = h.map(function(x){
+    const pct = Math.round(x.pct || 0);
+    const hp = Math.max(4, Math.round((pct / (max || 100)) * 100));
+    const color = pct >= 85 ? "var(--green)" : (pct >= 60 ? "var(--brand)" : "var(--red)");
+    return '<i style="height:' + hp + '%;background:' + color + '" title="' +
+      new Date(x.t).toLocaleString() + ' · ' + pct + '%（' + x.right + '/' + (x.graded||x.total) + '）"></i>';
+  }).join("");
+  if (lg){
+    const first = h[0], last = h[h.length - 1];
+    lg.innerHTML = "<span>最早 " + new Date(first.t).toLocaleDateString() + " · " + Math.round(first.pct||0) + "%</span>" +
+                   "<span>最近 " + new Date(last.t).toLocaleDateString() + " · " + Math.round(last.pct||0) + "%</span>";
+  }
+}
+
+function toast(msg){
+  const st = $("csStatus");
+  if (st){
+    st.className = "status ok";
+    st.textContent = msg;
+  }
+  console.info("[测验]", msg);
+}
+
+/* ---------- 同步面板事件绑定 ---------- */
+(function bindSyncUI(){
+  const btn = $("syncBtn"), panel = $("syncPanel");
+  if (btn && panel) btn.onclick = function(){ panel.classList.toggle("hide"); CloudSync.refreshUI(); };
+  const c1 = $("csConnect"), c2 = $("csDisconnect");
+  if (c1) c1.onclick = function(){
+    const tok = $("csToken");
+    const v = tok ? String(tok.value || "").trim() : "";
+    if (!v){ toast("请先填入 token"); return; }
+    if (!/^(gh[pousr]_|github_pat_)/.test(v) && v.length < 20){
+      if (!confirm("这看起来不像 GitHub token（通常以 ghp_ / github_pat_ 开头）。仍要继续吗？")) return;
+    }
+    toast("正在验证 token…");
+    CloudSync.setToken(v)
+      .then(function(){ toast("已连接"); return CloudSync.upload(); })
+      .catch(function(e){ toast("连接失败：" + e.message); });
+  };
+  if (c2) c2.onclick = function(){ CloudSync.disconnect(); };
+  const u = $("csUpload"), d = $("csDownload");
+  if (u) u.onclick = function(){ CloudSync.upload(); };
+  if (d) d.onclick = function(){ CloudSync.download(); };
+  const au = $("csAuto");
+  if (au) au.onchange = function(){ CloudSync.setAuto(au.checked); };
+  const hl = $("csHist");
+  if (hl) hl.onchange = function(){ CloudSync.setShowHist(hl.checked); };
+  renderHist();
+})();
+/* 用户真实操作（改组卷参数等）→ 记本地修改时间并排自动上传 */
+function markLocalChange(){
+  if (csApplying) return;
+  try{ saveCS({}, false); }catch(e){}
+  if (window.CloudSync && CloudSync.scheduleAutoPush) CloudSync.scheduleAutoPush();
+}
+
 /* 换一套：只在「种子随机」下换种子；关闭种子时本身就是每次不同 */
 function newSeed(){ state.seedVal = Math.floor(Math.random() * 1e9); }
 
@@ -866,16 +1336,16 @@ loadCompose();
 syncCompose();
 
 if ($("composeSize")) $("composeSize").onchange = (e)=>{
-  state.size = Number(e.target.value); saveCompose(); newSeed(); state.page = 0; start();
+  state.size = Number(e.target.value); saveCompose(); markLocalChange(); newSeed(); state.page = 0; start();
 };
 if ($("composeWeight")) $("composeWeight").onchange = (e)=>{
-  state.weight = e.target.value; saveCompose(); newSeed(); state.page = 0; start();
+  state.weight = e.target.value; saveCompose(); markLocalChange(); newSeed(); state.page = 0; start();
 };
 if ($("composeDedup")) $("composeDedup").onchange = (e)=>{
-  state.dedup = e.target.checked; saveCompose(); newSeed(); state.page = 0; start();
+  state.dedup = e.target.checked; saveCompose(); markLocalChange(); newSeed(); state.page = 0; start();
 };
 if ($("composeSeed")) $("composeSeed").onchange = (e)=>{
-  state.seed = e.target.checked; saveCompose(); newSeed(); state.page = 0; start();
+  state.seed = e.target.checked; saveCompose(); markLocalChange(); newSeed(); state.page = 0; start();
 };
 if ($("reshuffle")) $("reshuffle").onclick = ()=>{
   newSeed(); state.page = 0; start();
@@ -897,6 +1367,9 @@ if ($("reshuffle")) $("reshuffle").onclick = ()=>{
   /* 旧错题池迁移：下标 → id（用构建时写入的旧顺序快照换算） */
   const migrated = migrateWrongPool(BANK_OLD_ORDER_IDS);
   if (migrated) console.info('[测验] 错题池已迁移 ' + migrated + ' 条（下标 → id）');
+
+  /* 云同步面板初始化（不自动上传，等用户操作或已有配置时由防抖触发） */
+  try{ CloudSync.refreshUI(); }catch(e){}
 
   /* 持久化的组卷参数若与题库不兼容（如 top 模式下无题），回退到安全值 */
   newSeed();
@@ -971,6 +1444,15 @@ try {
       // 渲染探针
       html: () => ({ sheet: sheet ? sheet.innerHTML : "", statbar: $("statbar") ? $("statbar").innerHTML : "" }),
       composeHint: () => composeHint(),
+      // 云同步（测试用）
+      cs: () => CloudSync,
+      collectPayload: () => collectPayload(),
+      applyRemote: (d) => applyRemote(d),
+      loadCS: () => loadCS(),
+      saveCS: (o, silent) => saveCS(o, silent),
+      loadHist: () => loadHist(),
+      pushHist: (r) => pushHist(r),
+      csKeys: () => ({ LS_CS, LS_HIST, GIST_FILE, GIST_DESC }),
     };
   }
 } catch (e) { /* 钩子失败不应影响页面 */ }
