@@ -1,3 +1,12 @@
 .env
 .venv/
 __pycache__/
+
+# 测验构建/测试的临时产物（每次运行都会重新生成）
+tools/_test.txt
+tools/_render.txt
+tools/_paths.txt
+tools/_diag.*
+
+# 改造前的一次性备份（build.js 用它提取旧错题池顺序快照，勿删）
+# 保留 .index.html.bak —— 迁移需要，见 tools/build.js

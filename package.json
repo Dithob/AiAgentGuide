@@ -1,0 +1,13 @@
+{
+  "name": "aiagentguide-quiz",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Agent 学习笔记的测验工具：题库外置 + 按重点权重与知识点组卷",
+  "scripts": {
+    "export": "node tools/export-bank.js",
+    "build": "node tools/build.js",
+    "test": "node tools/run-tests.js",
+    "sync": "node tools/export-bank.js && node tools/build.js && node tools/run-tests.js"
+  },
+  "note": "改题流程：编辑 3-测验/bank.json（唯一入口）→ npm run build → npm test → 双击 3-测验/index.html 验证"
+}
