@@ -936,6 +936,45 @@ if (navHead){
 }
 applyNavCollapsed();
 
+/* =========================================================
+   测试钩子（供 tools/test-*.js 在 Node 沙箱内驱动真实交互）
+   —— 只在没有 window.__AAG_NO_HOOK__ 时挂载，对正常使用零影响
+   ========================================================= */
+try {
+  if (!window.__AAG_NO_HOOK__) {
+    globalThis.__t = {
+      // 题库 / 状态
+      bank: () => BANK,
+      state: () => state,
+      queue: () => state.queue,
+      bankInlineCount: () => (Array.isArray(BANK_INLINE) ? BANK_INLINE.length : 0),
+      oldOrder: () => BANK_OLD_ORDER_IDS,
+      // 组卷
+      start: (keepPage) => start(keepPage),
+      setMode: (m) => { state.mode = m; state.page = 0; start(false); },
+      setParam: (k, v) => { state[k] = v; },
+      rightCount: () => rightCount(),
+      gradedCount: () => gradedCount(),
+      answeredCount: () => answeredCount(),
+      newSeed: () => newSeed(),
+      loadCompose: () => loadCompose(),
+      // 答题与判分（直接驱动内部状态，绕过 DOM 事件）
+      // 注意：真源码把答案存在 state.picks[pos]，不是 state.queue[pos].pick。
+      // 这里必须写同一个位置，否则 gradeAll 读不到。
+      pick: (pos, letter) => pick(pos, letter),
+      gradeAll: () => gradeAll(),
+      ungrade: () => ungrade(),
+      // 错题池
+      loadWrong: () => loadWrong(),
+      saveWrong: (ids) => saveWrong(ids),
+      migrateWrongPool: (old) => migrateWrongPool(old),
+      // 渲染探针
+      html: () => ({ sheet: sheet ? sheet.innerHTML : "", statbar: $("statbar") ? $("statbar").innerHTML : "" }),
+      composeHint: () => composeHint(),
+    };
+  }
+} catch (e) { /* 钩子失败不应影响页面 */ }
+
 </script>
 </body>
 </html>
