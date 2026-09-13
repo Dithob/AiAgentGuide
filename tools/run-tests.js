@@ -9,6 +9,7 @@
  *   ③ 部署形态：file:// 内联 vs http:// 外置 vs 两者皆无
  *   ④ 端到端：真实答题闭环（答题→判分→错题入池→跨组卷保留→重做）
  *   ⑤ 云同步：Gist 上传/下载/冲突/凭证隔离/自动上传/安静通道
+ *   ⑥ 布局回归：真浏览器实测排版（前五项全是逻辑测试，测不出 CSS/结构塌陷）
  */
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -21,6 +22,7 @@ const TESTS = [
   ['部署形态', 'test-paths.js', '_paths.txt'],
   ['端到端流程', 'test-e2e.js', '_e2e.txt'],
   ['云同步', 'test-sync.js', '_sync.txt'],
+  ['布局回归', 'test-layout.js', '_layout.txt'],
 ];
 
 let totalFail = 0;
