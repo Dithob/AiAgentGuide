@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 教程 · 笔记体系工作台</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1b1f24; --ink-2:#4a5361; --ink-3:#7b8794;
+    --line:#e3e7ec; --line-2:#eef1f5;
+    --brand:#2f6feb; --brand-soft:#eaf1fe;
+    --green:#0f8b5f; --green-soft:#e7f6ef;
+    --amber:#b06f00; --amber-soft:#fdf3e2;
+    --red:#c0392b; --red-soft:#fdecea;
+    --purple:#6d4ee0; --purple-soft:#f0ecfd;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:36px 22px 80px}
+  header.hero{
+    background:linear-gradient(135deg,#ffffff 0%,#f3f7ff 100%);
+    border:1px solid var(--line); border-radius:16px; padding:30px 30px 26px; margin-bottom:26px;
+  }
+  .kicker{display:inline-block;font-size:12px;letter-spacing:.12em;color:var(--brand);background:var(--brand-soft);
+    padding:4px 10px;border-radius:99px;font-weight:600;margin-bottom:14px}
+  h1{font-size:27px;margin:0 0 10px;letter-spacing:-.01em}
+  .sub{color:var(--ink-2);margin:0;font-size:14.5px}
+  .meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:12.5px;color:var(--ink-2);background:#fff;border:1px solid var(--line);
+    border-radius:99px;padding:4px 11px}
+  h2{font-size:19px;margin:38px 0 14px;padding-left:12px;border-left:4px solid var(--brand);line-height:1.3}
+  h3{font-size:15.5px;margin:22px 0 10px;color:var(--ink)}
+  p{margin:10px 0}
+  code{background:#f1f3f7;border:1px solid var(--line-2);border-radius:5px;padding:1.5px 6px;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:#2c3542}
+  .path{color:var(--brand)}
+
+  /* 工作流 */
+  .flow{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr;gap:0;align-items:stretch;margin:18px 0 8px}
+  .flow .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px}
+  .flow .arrow{display:flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:20px}
+  .layer-no{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink-3)}
+  .layer-title{font-size:16.5px;font-weight:700;margin:6px 0 8px}
+  .layer-path{font-size:12.5px;color:var(--brand);margin-bottom:10px}
+  .layer-desc{font-size:13.5px;color:var(--ink-2);margin:0 0 12px}
+  .out{font-size:12.5px;color:var(--ink-3);border-top:1px dashed var(--line);padding-top:10px;margin:0}
+
+  /* 步骤 */
+  ol.steps{padding-left:0;list-style:none;counter-reset:s;margin:14px 0}
+  ol.steps li{counter-increment:s;position:relative;padding:12px 16px 12px 52px;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;margin-bottom:9px;font-size:14px}
+  ol.steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:24px;height:24px;
+    border-radius:50%;background:var(--brand);color:#fff;font-size:12.5px;font-weight:700;
+    display:flex;align-items:center;justify-content:center}
+  ol.steps li b{color:var(--ink)}
+
+  /* 通用表 */
+  table{width:100%;border-collapse:separate;border-spacing:0;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px;margin:14px 0}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line-2);vertical-align:top}
+  th{background:#f9fafc;font-weight:600;color:var(--ink-2);font-size:13px;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  td.c{text-align:center;white-space:nowrap}
+
+  pre{background:#f9fafc;border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+    overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.8px;
+    line-height:1.65;color:#2c3542;margin:14px 0}
+
+  /* 手法卡 */
+  .cap{display:grid;grid-template-columns:52px 1fr;gap:14px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:14px 16px;margin-bottom:9px}
+  .cap .tag{font-weight:700;color:var(--purple);background:var(--purple-soft);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;font-size:14px;height:34px}
+  .cap .body{font-size:13.6px}
+  .cap .body strong{color:var(--ink)}
+  .cap .q{margin-top:6px;color:var(--ink-2);font-size:13px}
+  .cap .q em{color:var(--brand);font-style:normal}
+
+  .badge{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px}
+  .b-ok{background:var(--green-soft);color:var(--green)}
+  .b-todo{background:#f1f3f7;color:var(--ink-3)}
+  .b-l4{background:var(--red-soft);color:var(--red)}
+  .b-l3{background:var(--amber-soft);color:var(--amber)}
+  .b-l2{background:var(--brand-soft);color:var(--brand)}
+
+  .note{background:var(--amber-soft);border:1px solid #f2ddb4;border-left:4px solid #dda43a;
+    border-radius:10px;padding:13px 16px;font-size:13.6px;color:#6b4c05;margin:14px 0}
+  .note b{color:#5a3f04}
+
+  .files{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin:14px 0}
+  .file{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .file .fn{font-family:ui-monospace,Consolas,monospace;font-size:12.6px;color:var(--brand);word-break:break-all}
+  .file .fd{font-size:13px;color:var(--ink-2);margin-top:5px}
+
+  footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink-3);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">AI AGENT GUIDE · 笔记体系</span>
+    <h1>从「记录」到「能讲出来」的三层笔记体系</h1>
+    <p class="sub">教材：<span class="path">https://ai-agent-guide.xiaofuge.cn/</span>（27 章 · 从基础认知到面试通关）<br>
+    解决一个问题：边学边记容易变成抄书，抄完记不住、面试讲不出。</p>
+    <div class="meta">
+      <span class="chip">建立 2026-09-13</span>
+      <span class="chip">已覆盖 第 0 / 1 章</span>
+      <span class="chip">60 道测验题</span>
+      <span class="chip">3 处 ==高亮== 已延伸</span>
+      <span class="chip">2 道错题已根治</span>
+    </div>
+  </header>
+
+  <h2>一、三层分离：每一层只干一件事</h2>
+  <p>把「记」和「整理」混在一起，是学习笔记最大的浪费——边看边精修，既慢又记不住。拆成三层之后，每层目标单一，可以分别优化。</p>
+
+  <div class="flow">
+    <div class="card">
+      <div class="layer-no">① 采集层</div>
+      <div class="layer-title">记录区</div>
+      <div class="layer-path">0-记录区/</div>
+      <p class="layer-desc">边学边记，允许潦草、允许只写半句。一个章节一个文件，读完就关，不做美化。</p>
+      <p class="out">产出：正文要点 · 八股卡 · 原题（含我的答案）</p>
+    </div>
+    <div class="arrow">▶</div>
+    <div class="card">
+      <div class="layer-no">② 沉淀层</div>
+      <div class="layer-title">知识库</div>
+      <div class="layer-path">1-知识库/</div>
+      <p class="layer-desc">按<strong>知识点</strong>重组，不按章节。同一知识点跨章节出现时，只维护一个文件。</p>
+      <p class="out">产出：30 秒结论 · 机制 · 易错点 · 关联题</p>
+    </div>
+    <div class="arrow">▶</div>
+    <div class="card">
+      <div class="layer-no">③ 冲刺层</div>
+      <div class="layer-title">面试题库</div>
+      <div class="layer-path">2-面试题库/</div>
+      <p class="layer-desc">选择题当体检表，真正要做的是<strong>去选项化 + 追问原理</strong>，变成面试官会问的开放题。</p>
+      <p class="out">产出：原题库（备查）+ 开放题口述版（主攻）</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>整理时机：</b>当天只记不整。一章结束或周末做二次整理——整理的本质是<b>合并同类项</b>，不是重抄一遍。
+  </div>
+
+  <h2>二、你的记号系统（我按这个来维护）</h2>
+  <p>记录区是你的地盘，你只用两个记号，我负责顺着记号做加工：</p>
+  <table>
+    <tr><th>你在记录区写</th><th>含义</th><th>我做什么</th></tr>
+    <tr><td><code>==……==</code></td><td><b>加强学习标记</b>——这个知识点要加深</td><td>知识库加「🔆 强化延伸」：补因果链、补数字、补追问链；并派生 3~5 道测验题</td></tr>
+    <tr><td><code>~~A~~ B</code></td><td>我选了 A（错），答案是 B</td><td>记进面试题库的「我的答题记录」，归纳根因 → 写「错题根治」→ 加进测验的错题池</td></tr>
+    <tr><td>正文摘录 / 八股原文</td><td>你认为重要的原文</td><td>保真收录进知识库对应条目的「📌 你的原文记录」（不改写），原文留在记录区</td></tr>
+    <tr><td><code>&gt; 疑问：……</code></td><td>你自己想到的问题</td><td>在知识库对应条目里正面回答（「❓ 你的疑问解答」），并配自测题</td></tr>
+  </table>
+
+  <h3>强化闭环：标记 → 延伸 → 出题 → 测验</h3>
+  <pre>你在记录区标 == 或记错题
+        ▼
+知识库对应条目  ──▶  🔆 强化延伸（补深度）+ ❓ 疑问解答
+        ▼
+面试题库        ──▶  开放题（口述版）+ 我的答题记录（根因/根治）
+        ▼
+3-测验/index.html ──▶  「🔆 强化专项」按知识点出题 · 「❌ 错题重做」自动收口
+        ▼
+答错 → 自动进错题池 → 下一轮只练错题</pre>
+  <div class="note">
+    <b>本轮新增：</b>测验页 <code>3-测验/index.html</code>（单文件、离线可用、记录存本地）。
+    60 题 = 教程原题 42 + 强化派生 18；支持<b>全部练习 / 🔆 强化专项 / ❌ 错题重做</b>三种模式，
+    按章节筛选，即时判分 + 解析，错题自动入池。
+  </div>
+
+  <h3>关键纪律</h3>
+  <table>
+    <tr><th>纪律</th><th>说明</th></tr>
+    <tr><td>只记你关心的</td><td>判断标准：面试官问到这个，我答不上来会不会很难看？会 → 记。教程里大段铺垫、多语言重复代码、纯 UI 演示 → 不记。</td></tr>
+    <tr><td>知识点卡片化</td><td>每个知识点写成一张 <code>K-xx</code> 卡，而不是一段流水账。卡片才能被检索、复用、跨章合并。</td></tr>
+    <tr><td>编号永不变</td><td>跨文件引用一律用编号（<code>见 K-07</code>、<code>衍生自 Q-12</code>），让笔记长成网络而不是孤岛。</td></tr>
+    <tr><td>选择题只当体检表</td><td>有选项就是「再认」，难度被稀释。用它定位漏洞，再用开放题训练「讲得出来」。</td></tr>
+  </table>
+
+  <h2>三、怎么用（每章照做）</h2>
+  <ol class="steps">
+    <li><b>复制模板</b>：<code>0-记录区/_模板-章节记录.md</code> → <code>chXX-标题.md</code>，填头部信息。</li>
+    <li><b>读的过程中</b>只填「📖 正文要点」，不要停下来精修。</li>
+    <li><b>读完立刻做课后选择题</b>，只写「选了哪个 + 一句话解析 + 考点 + 衍生开放题」。</li>
+    <li><b>想到的疑问</b>丢进「❓ 疑问」，不要现场查。</li>
+    <li><b>二次整理</b>：要点按知识点归并进 <code>1-知识库/</code>；选择题去选项化，衍生题写进 <code>2-面试题库/02-开放题-口述版.md</code>。</li>
+    <li><b>复习</b>：30 秒看知识库总表 → 3 分钟出声讲开放题，卡壳就回查卡片。</li>
+  </ol>
+
+  <h2>四、目录结构</h2>
+<pre>AiAgentGuide/
+├── index.html                   本工作台（图形化指南）
+├── README.md                    精简版：入口 + 三层结构 + 命名规则
+├── 0-记录区/                    ① 采集层（你的地盘，只记不整）
+│   ├── _模板-章节记录.md
+│   ├── ch00-Agent能力全景.md          ✅ 含 ==高亮== 与错题
+│   └── ch01-大模型与Agent基础.md      ✅ 含 ==高亮==、错题、你的疑问
+├── 1-知识库/                    ② 沉淀层（按知识点重组）
+│   ├── README.md                    索引 + 知识点总表 + 🔆强化清单 + 原文落点
+│   ├── 01-Agent全景与能力框架.md
+│   ├── 02-Token与上下文经济学.md      📌原文 + 🔆错题根治
+│   ├── 03-Transformer架构与位置编码.md 📌原文 + 🔆强化×2 + ❓疑问解答
+│   ├── 04-模型训练三阶段.md
+│   ├── 05-Prompt工程.md
+│   ├── 06-Embedding与向量检索.md      📌原文（含值域对照表）
+│   ├── 07-Function-Calling.md
+│   ├── 08-LLM选型与API范式.md         📌 Llama 4 逐条核实记录
+│   └── 09-思维框架-从CoT到Reflection.md 📌原文 + 🔆强化
+├── 2-面试题库/                  ③ 冲刺层
+│   ├── README.md                    六手法 + 四级深度 + 复习法
+│   ├── 01-选择题-原题与解析.md        ch00 15 + ch01 27 = 42 题 + 📝我的答题记录
+│   └── 02-开放题-口述版.md            O-01 ~ O-22（含 🔆 强化派生 5 道）
+├── 3-测验/index.html            ④ 测验工具（单文件，离线可用）
+└── backup/note1.md              你最初的随手记录（已拆分吸收）</pre>
+
+  <h2>五、章节地图（27 章）</h2>
+  <table>
+    <tr><th>章</th><th>标题</th><th>知识库落点</th><th class="c">状态</th></tr>
+    <tr><td class="c">0</td><td>Agent 能力全景展示</td><td>01-Agent全景与能力框架</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
+    <tr><td class="c">1</td><td>大模型与 Agent 基础概念</td><td>02 ~ 09（八条）</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
+    <tr><td class="c">2</td><td>什么是 AI Agent？</td><td>01（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">3</td><td>你的第一个 Agent：天气查询助手</td><td>07（实操）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">4</td><td>提示词工程：与 LLM 沟通的语言</td><td>05（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">5</td><td>上下文工程：给 LLM 发送的内容</td><td>02（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">6</td><td>ReAct：让 Agent 学会思考</td><td>09（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">7</td><td>Agent 的记忆系统</td><td>新增 10-记忆系统</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">8</td><td>意图识别与决策中枢</td><td>新增 11-意图识别与路由</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">9</td><td>Agent 运行时：Loop 引擎与沙箱</td><td>新增 12-Agent-Loop与运行时</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">10</td><td>Harness 工程：大脑的工程化外壳</td><td>新增 13-Harness工程</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">11</td><td>RAG：检索增强生成</td><td>06（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">12</td><td>LLM-Wiki：项目知识文件</td><td>06（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">13</td><td>Function Calling 与工具设计</td><td>07（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">14</td><td>MCP：工具的标准化接口</td><td>新增 14-MCP</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">15</td><td>Skills：工具的组合与复用</td><td>新增 15-Skills</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">16</td><td>CLI 能力：Agent 操作本地工具</td><td>新增 16-CLI能力</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">17</td><td>多 Agent 系统架构</td><td>新增 17-多Agent架构</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">18</td><td>LangGraph 与状态机</td><td>新增 18-LangGraph</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">19</td><td>主流 Agent 框架对比</td><td>08（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">20</td><td>Dify、Coze 与可视化编排</td><td>08（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">21</td><td>CLI Agent：命令行智能助手</td><td>新增 19-实战</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">22</td><td>GUI Agent：浏览器自动化</td><td>新增 20-GUIAgent</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">23</td><td>Agent 评估与可观测性</td><td>新增 21-评估与可观测性</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">24</td><td>Agent 安全与防护</td><td>新增 22-安全与防护</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">25</td><td>Agent 部署与运维</td><td>新增 23-部署与运维</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">26</td><td>推理框架与模型服务化</td><td>03（扩写 KV Cache / GQA）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">27</td><td>2026 Agent 技术展望</td><td>新增 24-技术展望</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+  </table>
+
+  <h2>六、核心方法：选择题 → 开放题 六手法</h2>
+  <p>教程给的是选择题，面试不发选项。拿到任何一道选择题，按下面六种手法依次过一遍，就能榨出 3~6 道真实面试题。</p>
+
+  <div class="cap"><div class="tag">A</div><div class="body">
+    <strong>去选项化</strong>　把「以下哪个是 ×」改成直接提问。<br>
+    <span class="q">→ <em>请说明 × 是什么、为什么</em></span>
+  </div></div>
+  <div class="cap"><div class="tag">B</div><div class="body">
+    <strong>追问原理</strong>　加 Why：为什么这样设计？底层机制是什么？<br>
+    <span class="q">→ <em>为什么"前缀完全相同"才能命中缓存？</em></span>
+  </div></div>
+  <div class="cap"><div class="tag">C</div><div class="body">
+    <strong>落到工程</strong>　加 How：项目里怎么落地？有没有具体配置？<br>
+    <span class="q">→ <em>你会怎么设计 Prompt 结构来最大化缓存命中率？</em></span>
+  </div></div>
+  <div class="cap"><div class="tag">D</div><div class="body">
+    <strong>加边界权衡</strong>　什么时候不适用？代价是什么？<br>
+    <span class="q">→ <em>什么情况缓存一定命中不了？这时怎么办？</em></span>
+  </div></div>
+  <div class="cap"><div class="tag">E</div><div class="body">
+    <strong>干扰项变陷阱</strong>　错误选项通常对应真实误区，做成纠错题。<br>
+    <span class="q">→ <em>有人说"流式输出更省钱"，对吗？</em></span>
+  </div></div>
+  <div class="cap"><div class="tag">F</div><div class="body">
+    <strong>反向假设</strong>　改条件会怎样？<br>
+    <span class="q">→ <em>如果缓存的是中间段而不是前缀，设计上有什么不同？</em></span>
+  </div></div>
+
+  <h3>四级深度（面试官真实递进路径）</h3>
+  <table>
+    <tr><th class="c">层级</th><th>问什么</th><th>答不上来的含义</th></tr>
+    <tr><td class="c"><span class="badge b-l2">L1</span></td><td>是什么？</td><td>硬伤，直接减分</td></tr>
+    <tr><td class="c"><span class="badge b-l2">L2</span></td><td>为什么？底层怎么做？</td><td>说明是背的，不是懂的</td></tr>
+    <tr><td class="c"><span class="badge b-l3">L3</span></td><td>工程上怎么用？怎么落地？</td><td>说明没有实战，只读过书</td></tr>
+    <tr><td class="c"><span class="badge b-l4">L4</span></td><td>什么场景不适用？代价是什么？</td><td>区分「会背」和「能干活」的分水岭</td></tr>
+  </table>
+  <div class="note">
+    <b>训练目标：</b>每个核心知识点至少能答到 <b>L3</b>；自己最熟的三五个知识点要能答到 <b>L4</b>。
+    判断标准是——不看任何材料，60 秒把一道 L3 题讲完整，并主动补一句边界。
+  </div>
+
+  <h2>七、文件清单</h2>
+  <div class="files">
+    <div class="file"><div class="fn">README.md</div><div class="fd">工作流说明 + 命名规则 + 27 章章节地图</div></div>
+    <div class="file"><div class="fn">0-记录区/_模板-章节记录.md</div><div class="fd">复制这个去记新章节（含填写指引）</div></div>
+    <div class="file"><div class="fn">0-记录区/ch00-Agent能力全景.md</div><div class="fd">序章记录：四大能力域、三次进化、适用边界</div></div>
+    <div class="file"><div class="fn">0-记录区/ch01-大模型与Agent基础.md</div><div class="fd">23 张八股卡 + 6 道选择题 + 4 条待查疑问</div></div>
+    <div class="file"><div class="fn">1-知识库/README.md</div><div class="fd">知识点总表（30 秒复习）+ 关系图 + 阅读建议</div></div>
+    <div class="file"><div class="fn">1-知识库/01 ~ 09-*.md</div><div class="fd">九条知识点：全景 / Token / Transformer / 训练 / Prompt / Embedding / FC / 选型 / 思维框架</div></div>
+    <div class="file"><div class="fn">2-面试题库/README.md</div><div class="fd">六手法 + 四级深度 + 实战示范 + 复习法</div></div>
+    <div class="file"><div class="fn">2-面试题库/01-选择题-原题与解析.md</div><div class="fd">ch00 15 题 + ch01 27 题，含易错题清单</div></div>
+    <div class="file"><div class="fn">2-面试题库/02-开放题-口述版.md</div><div class="fd">O-01 ~ O-22，每题的参考口述 + 追问链 + 雷区</div></div>
+    <div class="file" style="border-color:#d6ccf7;background:#faf8ff">
+      <div class="fn">3-测验/index.html</div>
+      <div class="fd"><b>60 题分页试卷</b>：每页 10 题（可调 5/20/全部）、答题卡点题号跳转、可自由改答案；<b>做完交卷才判分</b>，正确答案与解析原地标回每题；三种模式（全部 / 🔆 强化专项 / ❌ 错题重做）+ 错题清单</div>
+    </div>
+  </div>
+
+  <h2>八、教程勘误登记（已查证）</h2>
+  <table>
+    <tr><th>位置</th><th>问题</th><th class="c">判定</th></tr>
+    <tr><td>§1.1 缓存折扣</td><td>正文写「缓存单价约 50%」，课后题 Q26 解析写「输入成本降约 90%」。两个数字不是同一口径，已在知识库 <code>02</code> 并列记录，答题前先确认题目问的是哪个。</td><td class="c"><span class="badge b-l3">口径冲突</span></td></tr>
+    <tr><td>§1.7 <b>Llama 4</b> 行</td><td>教程写「Llama 4 · Meta · <b>开源</b> · <b>10M</b> · 2025.4 发布 · MoE」。经查 Meta 官方博客：日期与 MoE 属实；<b>10M 只是 Scout</b>（Maverick 是 1M），<b>「开源」应为「开放权重」</b>（Llama 4 Community License，非 OSI 认证，MAU&gt;7 亿需单独授权）。</td><td class="c"><span class="badge b-l4">两处不实</span></td></tr>
+    <tr><td>§1.7 其他模型</td><td>Gemini 2.5 Pro 在不同表格里写过 1M 和 2M；Llama 4 Behemoth 已搁置未发布。教程表格之间不自洽，以厂商官方文档为准。</td><td class="c"><span class="badge b-l3">参数矛盾</span></td></tr>
+    <tr><td>§0.2 能力域↔章节</td><td>映射表里的 ch 编号与顶部导航的「第 N 章」编号对不上（教程内部编号混乱）。</td><td class="c"><span class="badge b-l2">编号错位</span></td></tr>
+  </table>
+  <div class="note">
+    <b>用法建议：</b>章节正文里的<b>概念、机制、面试话术</b>质量不错，值得学；但表格里的<b>模型名称、参数、价格、版本号</b>一律当"会过期的地图"——用之前查官方文档。知识库 <code>08-LLM选型与API范式.md</code> 里有逐条核实记录。
+  </div>
+
+  <footer>
+    AI Agent 教程 · 笔记体系工作台　|　维护基准：<code>D:\TestProjects\playmind\AiAgentGuide</code>　|　生成于 2026-09-13<br>
+    约定：每次二次整理时更新对应文件的「最后核对日期」。
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 教程 · 知识测验（ch00-ch01）</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1b1f24; --ink-2:#4a5361; --ink-3:#7b8794;
+    --line:#e3e7ec; --line-2:#eef1f5;
+    --brand:#2f6feb; --brand-soft:#eaf1fe;
+    --green:#0f8b5f; --green-soft:#e7f6ef; --green-line:#b7e2ce;
+    --red:#c0392b; --red-soft:#fdecea; --red-line:#f5c6c0;
+    --amber:#b06f00; --amber-soft:#fdf3e2;
+    --purple:#6d4ee0; --purple-soft:#f0ecfd;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  /* 正文 + 右侧面板作为一个整体居中，面板永远贴着正文 */
+  .shell{display:flex;align-items:flex-start;justify-content:center;gap:14px;
+    max-width:1184px;margin:0 auto;padding:0 18px}
+  .app{max-width:900px;flex:1 1 900px;min-width:0;padding:24px 0 110px}
+
+  /* ---------- header ---------- */
+  header.top{background:linear-gradient(135deg,#fff 0%,#f3f7ff 100%);
+    border:1px solid var(--line);border-radius:16px;padding:20px 22px 18px;margin-bottom:14px}
+  .kicker{display:inline-block;font-size:11.5px;letter-spacing:.12em;color:var(--brand);
+    background:var(--brand-soft);padding:3px 9px;border-radius:99px;font-weight:600;margin-bottom:9px}
+  h1{font-size:20px;margin:0 0 5px;letter-spacing:-.01em}
+  .sub{color:var(--ink-2);margin:0;font-size:13.3px}
+
+  /* ---------- 工具条 ---------- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+  .pillbtn{
+    font:inherit;font-size:13.3px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink-2);cursor:pointer;transition:.15s;font-weight:500;
+  }
+  .pillbtn:hover{border-color:#c9d3e0;color:var(--ink)}
+  .pillbtn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+  .pillbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  .pillbtn.on.star{background:var(--purple);border-color:var(--purple)}
+  .pillbtn.on.wrong{background:var(--red);border-color:var(--red)}
+  .sep{flex:1}
+  select.pillbtn{font-family:inherit;appearance:none;padding-right:28px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%237b8794' stroke-width='1.6' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 9px center}
+
+  /* ---------- 状态条 ---------- */
+  .statbar{display:flex;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:10px 15px;font-size:13px;color:var(--ink-2);margin-bottom:10px}
+  .statbar b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .bar{height:5px;background:var(--line-2);border-radius:99px;overflow:hidden;margin-bottom:14px}
+  .bar>i{display:block;height:100%;background:var(--brand);width:0;transition:width .25s}
+
+  /* ---------- 答题卡（贴着正文右侧的悬浮面板） ---------- */
+  .navwrap{
+    flex:0 0 234px; width:234px; align-self:flex-start;
+    position:sticky; top:16px; z-index:60;
+    max-height:calc(100vh - 32px);
+    display:flex; flex-direction:column;
+    background:#fff;
+    border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:0 8px 26px rgba(27,31,36,.11);
+    padding:11px 12px 12px;
+  }
+  .nhead{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+  .nhead:hover .ntitle{color:var(--brand)}
+  .ntitle{font-size:12.8px;font-weight:700;color:var(--ink);transition:.15s}
+  .ncount{font-size:11.8px;color:var(--ink-3);margin-left:auto;font-variant-numeric:tabular-nums}
+  .ncaret{font-size:10px;color:var(--ink-3);transition:transform .18s;line-height:1}
+  .navwrap.collapsed .ncaret{transform:rotate(-90deg)}
+  .navwrap.collapsed{width:auto;padding:9px 12px}
+  .navwrap.collapsed .nbody{display:none}
+  .nbody{margin-top:9px;padding:4px 3px 2px;overflow:auto;min-height:0}
+  .nlabel{font-size:11px;color:var(--ink-3);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap}
+  .dot{display:inline-flex;align-items:center;gap:4px}
+  .dot i{width:9px;height:9px;border-radius:3px;display:inline-block}
+  .navgrid{display:flex;flex-wrap:wrap;gap:4px}
+  .navbtn{
+    width:29px;height:26px;border-radius:6px;border:1px solid var(--line);background:#fff;
+    color:var(--ink-2);font:inherit;font-size:11.6px;font-weight:600;cursor:pointer;
+    font-variant-numeric:tabular-nums;transition:.12s;padding:0;
+  }
+  .navbtn:hover{border-color:#c9d3e0}
+  .navbtn.done{background:var(--brand-soft);border-color:#bcd4fb;color:var(--brand)}
+  .navbtn.right{background:var(--green-soft);border-color:var(--green-line);color:var(--green)}
+  .navbtn.wrong{background:var(--red-soft);border-color:var(--red-line);color:var(--red)}
+  .navbtn.cur{box-shadow:inset 0 0 0 2px var(--brand);border-color:var(--brand);color:var(--brand);font-weight:700}
+  /* 窄屏放不下并排布局，退回右上角悬浮（此时脚本会默认收起） */
+  @media (max-width:860px){
+    .shell{display:block;max-width:900px}
+    .app{max-width:none}
+    .navwrap{position:fixed;top:12px;right:12px;width:234px;max-width:calc(100vw - 24px)}
+  }
+
+  /* ---------- 题目卡 ---------- */
+  .qcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:17px 19px 18px;margin-bottom:12px;scroll-margin-top:14px}
+  .chead{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+  .qno{font-size:13px;font-weight:700;color:var(--brand);background:var(--brand-soft);
+    border-radius:7px;padding:2px 9px;font-variant-numeric:tabular-nums}
+  .pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+  .p-type{background:#f1f3f7;color:var(--ink-2)}
+  .p-multi{background:var(--amber-soft);color:var(--amber)}
+  .p-tag{background:var(--brand-soft);color:var(--brand)}
+  .p-lv{background:#f1f3f7;color:var(--ink-3)}
+  .p-star{background:var(--purple-soft);color:var(--purple)}
+  .grow{flex:1}
+  .state{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
+  .s-right{background:var(--green-soft);color:var(--green)}
+  .s-wrong{background:var(--red-soft);color:var(--red)}
+  .s-none{background:#f1f3f7;color:var(--ink-3)}
+  .s-done{background:var(--brand-soft);color:var(--brand)}
+  .qtext{font-size:15.5px;font-weight:600;line-height:1.6;margin:0 0 13px}
+
+  .opts{display:flex;flex-direction:column;gap:7px;margin-bottom:11px}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;
+    padding:9px 12px;cursor:pointer;transition:.12s;background:#fff;text-align:left;font:inherit;
+    font-size:14px;color:var(--ink);line-height:1.55;width:100%}
+  .opt:hover{border-color:#c9d3e0;background:#fbfcfe}
+  .opt .key{flex:0 0 21px;height:21px;border-radius:6px;background:#f1f3f7;color:var(--ink-2);
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .opt.sel{border-color:var(--brand);background:var(--brand-soft)}
+  .opt.sel .key{background:var(--brand);color:#fff}
+  .opt.correct{border-color:var(--green-line);background:var(--green-soft)}
+  .opt.correct .key{background:var(--green);color:#fff}
+  .opt.wrong{border-color:var(--red-line);background:var(--red-soft)}
+  .opt.wrong .key{background:var(--red);color:#fff}
+  .opt[disabled]{cursor:default;pointer-events:none}
+
+  .cfoot{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  button.btn{font:inherit;font-size:13.5px;font-weight:600;padding:7px 16px;border-radius:8px;
+    border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer;transition:.15s}
+  button.btn:hover{filter:brightness(1.06)}
+  button.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+  button.ghost{background:#fff;color:var(--ink-2);border-color:var(--line)}
+  button.ghost:hover{border-color:#c9d3e0;color:var(--ink);filter:none}
+  .tip{font-size:12.3px;color:var(--ink-3)}
+
+  .fb{margin-top:13px;border-radius:10px;padding:13px 15px;font-size:13.8px;border:1px solid}
+  .fb.ok{background:var(--green-soft);border-color:var(--green-line)}
+  .fb.no{background:var(--red-soft);border-color:var(--red-line)}
+  .fb .verdict{font-weight:700;font-size:14.2px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+  .fb.ok .verdict{color:var(--green)}
+  .fb.no .verdict{color:var(--red)}
+  .fb .ex{color:var(--ink-2);line-height:1.72}
+  .fb .ex strong{color:var(--ink)}
+  .fb .link{margin-top:9px;padding-top:9px;border-top:1px dashed rgba(0,0,0,.12);
+    font-size:12.3px;color:var(--ink-3)}
+
+  /* ---------- 分页 ---------- */
+  .pager{display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 15px;margin-top:14px;position:sticky;bottom:12px;
+    box-shadow:0 -2px 14px rgba(27,31,36,.06)}
+  .pages{display:flex;gap:5px;flex-wrap:wrap}
+  .pg{min-width:30px;height:28px;border-radius:7px;border:1px solid var(--line);background:#fff;
+    color:var(--ink-2);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;padding:0 8px}
+  .pg:hover{border-color:#c9d3e0}
+  .pg.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .pg .badge{font-size:10.5px;color:var(--red);font-weight:700;margin-left:3px}
+  .pg.on .badge{color:#fff}
+
+  /* ---------- 结算 ---------- */
+  .result{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px 22px}
+  .score{font-size:42px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .score small{font-size:15px;color:var(--ink-3);font-weight:500}
+  .rsplit{margin:6px 0 16px;color:var(--ink-2);font-size:14px}
+  .rcard{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;background:#fcfdfe}
+  .rcard .q{font-weight:600;font-size:14px;margin-bottom:4px}
+  .rcard .m{font-size:12.5px;color:var(--ink-3)}
+  .okline{color:var(--green);font-weight:700}
+  .noline{color:var(--red);font-weight:700}
+
+  footer{margin-top:26px;text-align:center;color:var(--ink-3);font-size:12.3px}
+  kbd{background:#f1f3f7;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
+    padding:1px 5px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--ink-2)}
+  .hide{display:none !important}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="app">
+
+  <header class="top">
+    <span class="kicker">AI AGENT GUIDE · 知识测验</span>
+    <h1>第 0~1 章 · 分页试卷</h1>
+    <p class="sub">一页多题、可自由翻页与改答案；<b>做完点「交卷判分」，正确答案与解析会原地标回每一题</b>。题库 = 教程原题 + 你标了 <code>==</code> 的强化点派生题 + 错题变式。</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="pillbtn on" data-mode="all">全部练习</button>
+    <button class="pillbtn star" data-mode="star">🔆 强化专项</button>
+    <button class="pillbtn wrong" data-mode="wrong">❌ 错题重做</button>
+    <span class="sep"></span>
+    <select class="pillbtn" id="chapterFilter">
+      <option value="all">全部章节</option>
+      <option value="ch00">仅 ch00 序章</option>
+      <option value="ch01">仅 ch01 大模型基础</option>
+      <option value="star">仅强化派生题</option>
+    </select>
+    <select class="pillbtn" id="pageSize">
+      <option value="5">每页 5 题</option>
+      <option value="10" selected>每页 10 题</option>
+      <option value="20">每页 20 题</option>
+      <option value="9999">一页全部</option>
+    </select>
+    <button class="pillbtn" id="resetBtn">重置</button>
+  </div>
+
+  <div class="statbar" id="statbar"></div>
+  <div class="bar"><i id="progress"></i></div>
+
+  <main id="sheet"></main>
+  <div class="pager" id="pager"></div>
+
+  <footer>
+    快捷键：<kbd>←</kbd> <kbd>→</kbd> 翻页　·　单选 / 多选都只是「选中」，点<b>「交卷判分」</b>后统一出答案与解析　·　右侧答题卡点题号可直接跳转
+  </footer>
+</div>
+
+<aside class="navwrap" id="navwrap" aria-label="答题卡">
+  <div class="nhead" id="navHead" title="点击展开 / 收起答题卡">
+    <span class="ntitle">答题卡</span>
+    <span class="ncount" id="navCount">0 / 0</span>
+    <span class="ncaret">▾</span>
+  </div>
+  <div class="nbody" id="navBody">
+    <div class="nlabel" id="navLegend">
+      <span class="dot"><i style="background:#fff;border:1px solid #e3e7ec"></i>未答</span>
+      <span class="dot"><i style="background:#e7f6ef;border:1px solid #b7e2ce"></i>对</span>
+      <span class="dot"><i style="background:#fdecea;border:1px solid #f5c6c0"></i>错</span>
+    </div>
+    <div class="navgrid" id="navgrid"></div>
+  </div>
+</aside>
+</div>
+
+<script>
+/* =========================================================
+   题库  t: single | multi   lv: L1~L4   s:1 为强化专项派生题
+   ========================================================= */
+const BANK = /*__BANK__*/[{"c":"ch00","t":"single","lv":"L1","tag":"Token 密度","q":"GPT 系列模型中，中文文本的 Token 消耗通常比英文多约多少倍？","o":["约 0.5 倍，中文更省","约 1.5-2 倍，中文分词效率较低","完全相同，Token 数与语言无关","约 3 倍，中文每个字固定 3 个 Token"],"a":[1],"e":"分词器基于 BPE：英文一个单词通常 1~2 个 Token，中文一个汉字约 1.5~2 个 Token，所以中文 Token 密度更高。注意 D 是常见误答——那是 UTF-8 字节数，不是 Token 数。"},{"c":"ch00","t":"single","lv":"L1","tag":"Prompt 分层","q":"System Prompt 和 User Prompt 的核心区别是什么？","o":["System Prompt 是系统自动生成的，User Prompt 是用户输入的","System Prompt 用于设定角色和规则，User Prompt 是具体问题或任务","两者完全相同，只是位置不同","System Prompt 只能在 API 中使用，User Prompt 只能在聊天界面使用"],"a":[1],"e":"System 设定角色、行为规则与约束，整个对话持续生效；User 是当次的具体请求。API 中对应 role=\"system\" 与 role=\"user\"。"},{"c":"ch00","t":"single","lv":"L1","tag":"Embedding 本质","q":"Embedding 向量化的主要目的是什么？","o":["压缩文本以节省存储空间","将文本转换为数值向量，使语义相似的文本在向量空间中距离更近","加密文本内容保护隐私","将文本翻译成机器语言供编译器执行"],"a":[1],"e":"Embedding 把文本映射到高维向量空间，使语义相近者距离更近。省存储只是副产品，不是目的。"},{"c":"ch00","t":"single","lv":"L2","tag":"只决定不执行","q":"Function Calling 中 LLM 的角色是什么？","o":["LLM 直接执行函数代码并返回结果","LLM 根据用户意图输出结构化的函数调用参数，由外部系统执行","LLM 只能调用预置的函数，不能自定义","LLM 负责编译函数代码为可执行文件"],"a":[1],"e":"LLM 只负责生成\"函数名 + 参数\"的结构化调用指令，**不执行任何代码**。执行由开发者代码完成。"},{"c":"ch00","t":"single","lv":"L1","tag":"开源许可","q":"以下哪个模型的开源协议允许商业使用？","o":["GPT-4o（OpenAI 闭源）","Claude Sonnet（Anthropic 闭源）","Llama 3（Meta 开源，有商业限制）","Gemini Ultra（Google 闭源）"],"a":[2],"e":"Llama 3 允许商用但有月活限制（7 亿）。另外注意：Llama 系准确说是\"开放权重\"，许可是自定义 Community License，不是 OSI 认证的开源协议。"},{"c":"ch00","t":"multi","lv":"L2","tag":"CoT 的收益与代价","q":"以下哪些是 Chain-of-Thought（CoT）思维链的优势？","o":["提升复杂推理任务的准确率","减少 Token 消耗降低成本","让推理过程可追溯便于调试","适用于所有类型的任务包括简单问答","可以通过分步推理解决数学应用题"],"a":[0,2,4],"e":"CoT 通过分步推理提升复杂任务准确率、过程透明可调试、适合数学逻辑题。但它**增加** Token 消耗（输出更多中间步骤），且对简单问答无益甚至有害。"},{"c":"ch00","t":"multi","lv":"L2","tag":"窗口的三个误区","q":"关于上下文窗口，以下说法正确的是？","o":["上下文窗口越大，模型理解能力一定越强","上下文窗口满了可以通过摘要压缩历史对话","GPT-4o 最大支持 128K Token 的上下文窗口","上下文窗口内的信息模型一定能完美记住","Claude 3.5 Sonnet 支持 200K Token 的上下文窗口"],"a":[1,2,4],"e":"窗口大小 ≠ 理解能力，过长上下文会 Lost in the Middle（中段信息注意力下降）；窗口内信息也不保证被完美记住。"},{"c":"ch00","t":"multi","lv":"L1","tag":"Prompt 技巧 vs 训练算法","q":"以下哪些属于 Prompt Engineering 的高级技巧？","o":["Few-Shot Prompting（少样本提示）","Role Prompting（角色扮演）","Gradient Descent（梯度下降）","Self-Consistency（自一致性）","Backpropagation（反向传播）"],"a":[0,1,3],"e":"梯度下降与反向传播是**模型训练阶段**的优化算法，不属于 Prompt 技巧。这是选择题最常设的干扰项。"},{"c":"ch00","t":"multi","lv":"L2","tag":"计费规则","q":"选择关于 Token 计费正确的说法：","o":["Output Token 通常比 Input Token 贵 3-4 倍","Token 计费与模型版本无关，价格统一","缓存命中的 Input Token 可以享受折扣价","不同模型的 Token 价格差异可能达 10 倍以上","Token 计费只按字符数计算，与分词无关"],"a":[0,2,3],"e":"按**分词**计费而非字符数；输出因需逐 Token 自回归生成，通常贵 3~4 倍；模型间价差可达 10 倍以上。顺带记：**流式输出不省钱**，Token 总数与非流式相同。"},{"c":"ch00","t":"multi","lv":"L1","tag":"模型识别","q":"以下哪些是主流的 Embedding 模型？","o":["text-embedding-3-small（OpenAI）","BGE（智源研究院）","ResNet-50（微软）","text2vec-large-chinese","YOLOv8（Ultralytics）"],"a":[0,1,3],"e":"ResNet-50 是图像分类模型、YOLOv8 是目标检测模型，都不是 Embedding 模型。"},{"c":"ch00","t":"single","lv":"L2","tag":"三代进化","q":"AI 从 ChatBot 进化到 Agent 的第三代（2024-2026），解锁的核心能力是什么？","o":["生成文本","调用外部 API","自主规划多步任务、循环调用工具、自我纠错","基于训练数据回答问题"],"a":[2],"e":"第三代（ReAct 模式）的跃迁是自主规划 + 循环执行 + 自我纠错——不再是一问一答，而是能拆解任务、多步执行、按反馈调整。"},{"c":"ch00","t":"single","lv":"L2","tag":"实时数据能力","q":"以下哪个能力是「第一代纯聊天」AI 完全不具备的？","o":["写文章","翻译","查实时天气","回答通识问题"],"a":[2],"e":"第一代只能基于训练数据生成文本，无法获取实时信息、不能调 API、不能执行代码。查实时天气需要工具调用，是第二代才有的能力。"},{"c":"ch00","t":"single","lv":"L3","tag":"多步任务需闭环","q":"一个 Agent 要完成「帮用户订机票」这个任务，至少需要哪些能力组合？","o":["仅文本生成","文本生成 + 一次 API 调用","感知 + 决策 + 工具调用 + 循环观察 + 反馈","仅 Function Calling"],"a":[2],"e":"订机票涉及多步：理解需求→查航班→比价→确认→下单，需要完整的感知-决策-行动-观察-反馈闭环。"},{"c":"ch00","t":"multi","lv":"L3","tag":"区分点识别","q":"以下哪些是 Agent 区别于 ChatBot 的本质特征？（多选）","o":["能自主决定下一步做什么","拥有工具调用能力","能基于训练数据回答问题","能通过循环处理多步任务"],"a":[0,1,3],"e":"C 不是区分点——ChatBot 也能基于训练数据回答。Agent 的本质是自主决策 + 工具调用 + 循环执行多步任务。"},{"c":"ch00","t":"multi","lv":"L3","tag":"适用边界","q":"关于 Agent 的适用场景，以下说法正确的是？（多选）","o":["需要调用外部工具的任务","需要多步决策的任务","确定性高、流程固定的任务","需要持续反馈和纠错的任务"],"a":[0,1,3],"e":"确定性高、流程固定的任务用传统程序更高效可靠——这是 Agent 的**边界**，也是高频考点。"},{"c":"ch01","t":"single","lv":"L1","tag":"Agent 本质","q":"AI Agent 与传统 Chatbot 的核心区别是什么？","o":["Agent 只能在命令行运行，Chatbot 只能在网页运行","Agent 具备自主规划和工具调用能力，Chatbot 只做对话回复","Agent 使用大模型，Chatbot 使用规则引擎","Agent 和 Chatbot 本质相同，只是叫法不同"],"a":[1],"e":"核心差异在**架构**：Agent 在 LLM 外挂了工具层、记忆层、循环控制层，跑\"感知→规划→行动→观察→反思\"闭环。"},{"c":"ch01","t":"single","lv":"L2","tag":"闭环顺序","q":"Agentic Loop（Agent 循环）的标准流程顺序是？","o":["行动→感知→规划→观察","感知→行动→规划→反思","感知→规划→行动→观察→反思","规划→感知→观察→行动"],"a":[2],"e":"标准 Agentic Loop 是**5 步**：感知 → 规划 → 行动 → 观察 → 反思，然后回到感知进入下一轮。注意\"观察\"之后还有\"反思\"。"},{"c":"ch01","t":"single","lv":"L1","tag":"逻辑组件 vs 硬件","q":"以下哪个不是 AI Agent 的核心组件？","o":["LLM（大语言模型，负责推理和决策）","Memory（记忆系统，存储上下文）","Tools（工具集，执行具体操作）","GPU（图形处理器，渲染画面）"],"a":[3],"e":"核心组件 = LLM / Memory / Tools / Planning。GPU 是硬件层的算力资源，不是 Agent 的逻辑组件。"},{"c":"ch01","t":"single","lv":"L1","tag":"发展史","q":"AutoGPT 被认为是 AI Agent 发展史上的里程碑，主要因为？","o":["它是第一个基于 GPT-4 的应用","它首次展示了 Agent 自主分解任务、上网搜索、执行代码的闭环能力","它的代码量最大最复杂","它是 OpenAI 官方发布的产品"],"a":[1],"e":"2023 年开源，首次在公众面前验证了 Agent 范式的可行性：自主分解任务 → 搜索 → 写并执行代码 → 按结果调策略。"},{"c":"ch01","t":"single","lv":"L2","tag":"自主决策","q":"Agent 的自主决策能力主要体现在？","o":["能自动选择调用哪个工具完成任务","能自动关闭不相关的浏览器标签","能自动升级自己的模型版本","能自动购买更多 GPU 算力"],"a":[0],"e":"核心是：LLM 根据任务和观察到的环境信息，自主判断**调哪个工具、传什么参数、要不要多步执行**——这是区别于固定流程脚本的关键。"},{"c":"ch01","t":"multi","lv":"L3","tag":"适用边界","q":"以下哪些是 AI Agent 的典型应用场景？","o":["自动化代码审查和 Bug 修复","智能客服自动回复常见问题","自主上网搜索并总结研究报告","批量处理 Excel 数据并生成图表","自动管理服务器监控和告警处理"],"a":[0,2,3,4],"e":"B 偏传统 Chatbot（固定问答库）；除非客服需要调用工具查订单等操作，才升级为 Agent。"},{"c":"ch01","t":"multi","lv":"L3","tag":"Agent 增益与其代价","q":"以下哪些是 Agent 相对于纯 LLM 的优势？","o":["能获取实时信息（通过搜索工具）","能执行代码和操作文件系统","推理速度一定比纯 LLM 快","能与其他 Agent 协作完成复杂任务","模型参数量一定比纯 LLM 大"],"a":[0,1,3],"e":"Agent 因需要多轮工具调用，通常比纯 LLM **更慢**；且它与 LLM 使用同一个底层模型，参数量无差异。"},{"c":"ch01","t":"multi","lv":"L2","tag":"产品认知","q":"关于 Devin、Claude Computer Use、OpenAI Operator 三个产品，正确的说法是？","o":["Devin 定位为 AI 软件工程师，能自主完成开发任务","Claude Computer Use 能操控图形界面完成任务","OpenAI Operator 是开源的本地部署 Agent","三者都展示了 Agent 自主操作计算机界面的能力","三者都只能通过 API 调用，没有可视化界面"],"a":[0,1,3],"e":"OpenAI Operator 并非开源本地部署产品，这是唯一的错误项。"},{"c":"ch01","t":"multi","lv":"L2","tag":"Agent 不改模型权重","q":"以下哪些属于 Agent 的环境交互能力？","o":["通过 API 获取外部数据","通过浏览器自动化操作网页","通过 SSH 执行远程服务器命令","通过传感器感知物理世界温度","通过修改自身模型权重来学习新知识"],"a":[0,1,2,3],"e":"Agent 使用**固定的 LLM**，靠外部记忆系统和工具扩展能力，**不修改自身模型权重**。E 是编造的干扰项。"},{"c":"ch01","t":"multi","lv":"L2","tag":"趋势判断","q":"Agent 的发展趋势包括以下哪些？","o":["从单一 Agent 向多 Agent 协作发展","从纯文本交互向多模态（视觉/语音）发展","从通用 Agent 向垂直领域专业化发展","从需要人类监督向完全自主无需人类参与发展","从基于 LLM 向基于传统规则引擎发展"],"a":[0,1,2],"e":"完全无需人类监督目前不现实（安全与伦理要求人类在环）；回退到规则引擎不成立，LLM 是 Agent 的核心推理引擎。"},{"c":"ch01","t":"single","lv":"L2","tag":"完整链路","q":"Agent 从用户输入到输出的完整链路包含 8 个步骤，正确的顺序是？","o":["意图识别→任务分类→执行调度→工具选择→工具调用→结果验证→结果整合→输出呈现","输入→理解→执行→输出（4 步简化）","意图→规划→执行→反馈→修正→输出（6 步）","用户提问→LLM 思考→工具调用→返回答案（3 步）"],"a":[0],"e":"完整 8 步链路；简化版本会遗漏关键决策节点。"},{"c":"ch01","t":"multi","lv":"L2","tag":"任务分类","q":"意图识别的四种任务类型包括哪些？（多选）","o":["信息查询型（问事实、查资料）","任务执行型（写代码、发邮件）","推理分析型（数学推理、逻辑判断）","创意生成型（写文案、设计方案）"],"a":[0,1,2,3],"e":"四种类型决定不同的执行路径和工具选择策略。"},{"c":"ch01","t":"multi","lv":"L3","tag":"调度决策","q":"执行调度决策的核心考虑因素包括？（多选）","o":["任务类型（该用模型还是工具？）","执行成本（token 消耗、时间开销）","失败概率（可能出错的程度）","依赖关系（是否需要前序步骤的结果）"],"a":[0,1,2,3],"e":"调度需综合任务类型、执行成本、失败概率与依赖关系，而不是简单地\"都交给 LLM 处理\"。"},{"c":"ch01","t":"single","lv":"L1","tag":"六大模块","q":"AI Agent 的六大核心模块不包括以下哪个？","o":["感知模块（Perception）","规划模块（Planning）","编译模块（Compilation）","反思模块（Reflection）"],"a":[2],"e":"六大模块 = 感知 / 规划 / 记忆 / 工具 / 执行 / 反思。编译模块属于编译器，不属于 Agent 架构。"},{"c":"ch01","t":"single","lv":"L2","tag":"规划的输入来源","q":"感知-规划-行动闭环中，规划模块的主要输入是什么？","o":["只有用户原始指令","感知模块的输出和记忆系统中的历史信息","只有工具执行的结果","只有外部 API 的返回数据"],"a":[1],"e":"规划模块综合\"感知到的环境与指令\"+\"记忆中的历史对话和经验\"，通过 LLM 生成下一步行动方案。"},{"c":"ch01","t":"single","lv":"L2","tag":"反思触发条件","q":"Agent 的反思模块在什么情况下触发？","o":["只在任务完成时触发一次","在每次工具调用失败或结果不符合预期时触发","只在用户明确要求时触发","每隔固定时间自动触发"],"a":[1],"e":"通常在工具调用失败、结果不符预期、或 Agent 陷入循环时触发。高级实现还会在关键决策点主动反思。"},{"c":"ch01","t":"single","lv":"L2","tag":"端到端 vs 模块化","q":"端到端 Agent 架构的主要特点是什么？","o":["所有功能由一个 LLM 完成，不区分模块","感知和规划由一个模型处理，执行和反思由另一个处理","每个模块使用独立的模型，通过管道连接","完全不需要 LLM，使用传统算法"],"a":[0],"e":"端到端：一个 LLM 包办从感知到行动决策的全部工作，不显式分模块。优点是简单直接，缺点是难调试、难优化特定环节。"},{"c":"ch01","t":"single","lv":"L1","tag":"职责边界","q":"在 Agent 架构中，LLM 的角色是什么？","o":["负责存储历史对话数据","负责推理决策和自然语言理解，是 Agent 的大脑","负责执行代码和调用 API","负责加密通信和数据安全"],"a":[1],"e":"LLM 是大脑（推理/理解/规划）；记忆系统负责存储，工具与执行模块负责具体操作。LLM 本身既不存数据也不执行代码。"},{"c":"ch01","t":"multi","lv":"L3","tag":"模块化的收益与成本","q":"以下哪些是模块化 Agent 架构的优势？","o":["各模块可独立优化和替换","便于调试定位问题出在哪个环节","推理速度一定比端到端快","可以为不同模块选择不同的模型","架构更简单，代码量更少"],"a":[0,1,3],"e":"模块化更复杂、代码更多，模块间通信有开销，**不一定更快**；E 说反了。"},{"c":"ch01","t":"multi","lv":"L2","tag":"记忆分类","q":"Agent 的记忆系统通常包含哪些类型？","o":["短期记忆（工作记忆，存储当前对话上下文）","长期记忆（向量数据库，存储历史经验）","程序性记忆（存储工具使用方法和流程）","基因记忆（从父 Agent 继承的记忆）","情景记忆（存储特定事件的上下文）"],"a":[0,1,2,4],"e":"\"基因记忆\"是编造的干扰项——Agent 不会从父 Agent 继承记忆。"},{"c":"ch01","t":"multi","lv":"L2","tag":"执行模块边界","q":"关于 Agent 执行模块，正确的说法是？","o":["执行模块负责调用工具和 API","执行模块需要处理工具调用失败的情况","执行模块只能调用一个工具","执行模块的输出会反馈给感知模块","执行模块负责生成自然语言回复"],"a":[0,1,3],"e":"执行模块可**并行调用多个工具**；生成自然语言回复是 **LLM** 的职责，不是执行模块的。"},{"c":"ch01","t":"multi","lv":"L2","tag":"逻辑架构 vs 部署架构","q":"以下哪些是 Agent 架构设计的常见模式？","o":["端到端模式（单个 LLM 处理所有工作）","模块化模式（各功能分离，LLM 只做推理）","混合模式（核心模块化 + 部分端到端）","瀑布模式（严格顺序执行不可回溯）","微服务模式（每个工具独立部署为服务）"],"a":[0,1,2],"e":"瀑布模式过于僵化，不符合 Agent 的迭代循环特性；微服务是**部署架构**，不是 Agent 的逻辑架构。"},{"c":"ch01","t":"multi","lv":"L2","tag":"识别无意义干扰项","q":"设计 Agent 架构时需要考虑哪些关键因素？","o":["任务复杂度（简单任务用端到端，复杂任务用模块化）","延迟要求（实时场景需要精简流程）","成本预算（多模型调用成本更高）","模型颜色偏好（蓝色模型比红色好）","安全要求（高风险操作需要人工审核环节）"],"a":[0,1,2,4],"e":"\"模型颜色偏好\"是无意义项——这类明显荒谬的选项是送分，别因为多选就硬选。"},{"c":"ch01","t":"single","lv":"L2","tag":"动态/静态 Prompt","q":"动态 Prompt 和静态 Prompt 的核心区别是？","o":["动态 Prompt 每轮重新组装上下文，静态 Prompt 系统指令固定不变","动态 Prompt 比静态 Prompt 更长","静态 Prompt 比动态 Prompt 更准确","两者没有实质区别"],"a":[0],"e":"动态部分按当前意图、记忆检索结果、工具描述等每轮重组；静态部分是系统指令与角色设定，作为固定基础框架。"},{"c":"ch01","t":"multi","lv":"L3","tag":"Token 预算分配","q":"上下文窗口中 token 分配策略包括哪些？（多选）","o":["系统指令预留（固定分配给角色设定和规则）","对话历史滚动（保留最近 N 轮，丢弃旧对话）","工具描述动态注入（按需加载相关工具描述）","全部 token 留给模型输出"],"a":[0,1,2],"e":"预算需在三部分间平衡；全部留给输出会导致模型缺乏足够上下文信息。"},{"c":"ch01","t":"single","lv":"L2","tag":"缓存收益","q":"Prompt Caching 命中时，输入 token 成本大约降低多少？","o":["约 50%","约 70%","约 90%","100%（完全免费）"],"a":[2],"e":"本题口径：输入 token **成本降低约 90%**（例：缓存命中输入从 $5/M 降到 $0.5/M）。⚠️ 注意教程 §1.1 正文另有一处写\"缓存单价约 50%\"，那是**单价口径**，与本处的**成本降幅口径**不同，答题先看问的是什么。"},{"c":"ch01","t":"multi","lv":"L2","tag":"动态 Prompt 来源","q":"动态 Prompt 组装中常见的变量来源包括？（多选）","o":["用户输入（当前问题的内容）","记忆检索结果（从长期记忆中召回的相关信息）","工具返回结果（上一步工具执行的结果）","系统配置（角色设定、规则约束）"],"a":[0,1,2,3],"e":"四个来源共同组装出当前轮的上下文，确保模型有足够的决策信息。"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 Attention 的收益","q":"Self-Attention 相比 RNN，把任意两个词之间的信息传递路径长度从 O(n) 降到了？","o":["O(1)","O(log n)","O(n²)","没有变化"],"a":[0],"e":"Attention 让任意两词\"一步直达\"，信息路径长度降到 **O(1)**——这才是它能根治长距离依赖的根本原因（不只是\"能看全局\"）。"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 Attention 的代价","q":"下列关于 Attention 与 RNN 的说法，错误的是？","o":["Attention 的所有位置可以并行计算","RNN 因时间步依赖（h_t 依赖 h_{t-1}）无法并行","Attention 的时间和显存开销都是 O(n²)","Attention 在任意序列长度下都优于 RNN"],"a":[3],"e":"**D 错**。Attention 用 O(n²) 换来了 O(1) 信息路径和并行度，序列极长时显存先炸，反而可能不如线性复杂度的方案。这题就是训练你别说\"Attention 全面优于 RNN\"。"},{"c":"star","s":1,"t":"single","lv":"L2","tag":"🔆 LSTM 的效果","q":"LSTM 的门控机制对 RNN 的长距离依赖问题，效果是？","o":["完全解决","缓解但不根治","完全没有效果","反而加重了问题"],"a":[1],"e":"门控是**缓解**——信息仍要逐跳传递，只是衰减变慢。这是常考的措辞题：缓解 ≠ 解决。"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 FlashAttention","q":"FlashAttention 属于哪一类优化？","o":["近似算法，牺牲精度换速度","IO 优化，数学上精确等价","修改了注意力计算公式","把复杂度降到了 O(n)"],"a":[1],"e":"FlashAttention 是 **IO-bound 优化**——分块 + 重算，把计算留在片上 SRAM，减少 HBM 读写。**数学上精确等价**，不改变注意力公式，也没降复杂度。这是最容易被追问、也最容易答错的点。"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 线性复杂度方案","q":"以下哪一项**不是**把注意力复杂度降到线性的方案？","o":["滑窗 / 稀疏注意力","线性注意力（Linear Attention）","Mamba / SSM 状态空间模型","FlashAttention"],"a":[3],"e":"FlashAttention 不降复杂度，只优化内存访问。滑窗/稀疏是近似降复杂度，线性注意力和 Mamba 是从机制上回到线性。"},{"c":"star","s":1,"t":"multi","lv":"L2","tag":"🔆 RoPE 三大优势","q":"RoPE 成为当前主流位置编码的三个原因包括？","o":["外推性强（4K 训练可扩到 128K+）","编码相对位置而非绝对位置","不增加可训练参数","计算复杂度低于 O(n²)"],"a":[0,1,2],"e":"D 是错的——RoPE 只改变 Q/K 的编码方式，**不改变注意力的 O(n²) 复杂度**（复杂度来自注意力矩阵，与位置编码无关）。"},{"c":"star","s":1,"t":"single","lv":"L2","tag":"🔆 RoPE 依赖什么","q":"RoPE 让注意力分数只依赖下列哪一项？","o":["绝对位置","相对位置差 (i−j)","词频","词向量的模长"],"a":[1],"e":"旋转角度差只取决于位置差，所以分数成为 (i−j) 的函数——语义表示与绝对位置解耦，\"整段往后挪\"不改变内部关系。"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 外推的现实","q":"关于 RoPE 的外推能力，正确的说法是？","o":["天然支持无限外推，不需要任何额外处理","需配合位置插值 / NTK / YaRN 等缩放技术，且超出训练分布仍有性能衰减","完全不能外推","只对中文模型有效"],"a":[1],"e":"外推是一条技术谱系：PI → NTK-aware → YaRN → 长上下文继续预训练。不做缩放直接外推，性能会衰减；缩放也只是缓解，不是万能。"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 你的疑问（位置编码）","q":"去掉位置编码后，「猫追狗」和「狗追猫」中「猫」这个位置的向量表示会怎样？","o":["不同，因为它在两句里的语法角色不同","完全相同，因为注意力输出是对所有位置加权求和，加法可交换","相近但不完全相同","无法确定，取决于模型大小"],"a":[1],"e":"正解 B。`out_i = Σ_j softmax(q_i·k_j/√d_k)·v_j` 是**对 j 求和**，而两句里每个词的 embedding 相同 → 加权和与顺序无关 → 向量完全相同。**结论：没有位置编码，模型分不清主语和宾语。** 你观察到多头学到主谓宾，是因为训练时位置编码已经在里面了。"},{"c":"star","s":1,"t":"multi","lv":"L3","tag":"🔆 面试雷区（错的说法）","q":"以下关于 RoPE 的说法，哪些是**错误**的？","o":["RoPE 编码的是绝对位置","RoPE 引入了额外的可训练参数","RoPE 让注意力分数依赖相对距离","有了 RoPE 就能无限外推"],"a":[0,1,3],"e":"A、B、D 都是典型误答：RoPE 编码**相对**位置、**零新增参数**（旋转矩阵是固定三角函数）、外推**需要**缩放技术。只有 C 是对的。"},{"c":"star","s":1,"t":"single","lv":"L2","tag":"🔆 ReAct 多什么","q":"ReAct 相比 CoT 多出来的核心能力是什么？","o":["多路径探索","全局规划","工具调用（行动）","自我审查"],"a":[2],"e":"递进链的能力叠加：CoT（推理）→ **ReAct（+行动/工具调用）** → ToT（+探索回溯）。答\"多什么\"才是这题的得分点。"},{"c":"star","s":1,"t":"single","lv":"L2","tag":"🔆 ToT 多什么","q":"ToT（思维树）相比 ReAct 多出来的是什么？","o":["更多可用的工具","多路径探索与回溯","更长的上下文窗口","多模态输入能力"],"a":[1],"e":"ToT 加的是**探索**——分叉出多条推理路径、评估后回溯剪枝。不是\"更多工具\"，也不是上下文变长。"},{"c":"star","s":1,"t":"multi","lv":"L3","tag":"🔆 框架选择原则","q":"关于思维框架的选择，正确的说法有？","o":["框架越复杂效果越好","需要外部信息或精确计算时才上 ReAct","流程可枚举的确定任务不该用 Agent","输出质量优先于成本时，可以在 ReAct 之后叠 Reflection"],"a":[1,2,3],"e":"A 是错的——**越匹配越好**。复杂框架在简单任务上更贵更慢，还会引入新的失败模式（如 Agents 陷入循环、Token 爆炸）。"},{"c":"star","s":1,"t":"multi","lv":"L4","tag":"🔆 缓存分层（你的错题）","q":"128K 窗口的 Token 分配中，哪些是**整个会话内固定不变、可 100% 命中前缀缓存**的？（多选）","o":["System Prompt（角色+规则）","对话历史（多轮交互记录）","工具 Schema（Function Calling 定义）","记忆召回片段（长期记忆检索结果）"],"a":[0,2],"e":"你原来选了 ACD（`~~ACD~~ AC`）。**正解 AC。** 判断标准只有一句：**它在这次请求里，和上次请求的对应位置是不是逐字节相同？** 对话历史**逐轮增长**、记忆召回**按需检索**，每轮都变 → 都不命中。记法：**印在纸上的（System + 工具 Schema）能缓存，每轮新写的不能。**"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 缓存为什么失效","q":"记忆召回片段通常无法命中前缀缓存，主要原因是？","o":["它太长了，超过缓存大小","每轮召回的片段可能不同，插在中间会把后面所有内容的前缀打断","它不是文本，无法缓存","模型不支持对记忆做缓存"],"a":[1],"e":"前缀缓存的命中条件是**前缀逐字节相同**。记忆召回常被插在中间，一旦内容变化，**它之后的所有内容前缀都变了** → 全部失效。所以设计原则是：固定放最前、动态放最后。"},{"c":"star","s":1,"t":"single","lv":"L2","tag":"🔆 缓存命中条件","q":"关于 Prompt Caching 的命中条件，正确的是？","o":["前缀语义相似即可命中","前缀必须完全相同，一字之差就会失效","只要在同一会话内就必然命中","由模型自主判断是否命中"],"a":[1],"e":"命中条件是**前缀逐字节完全相同**，语义相似没用。所有缓存友好的结构设计（固定前、动态后、合并 system 消息）都是从这一条推出来的。"},{"c":"star","s":1,"t":"single","lv":"L2","tag":"🔆 余弦值域（你的错题）","q":"余弦相似度的取值范围是？","o":["〔0, 1〕","〔-1, 1〕","〔0, +∞)","(-∞, +∞)"],"a":[1],"e":"你原来选了 A（`~~A~~ B`）。**正解 B**。根因是把\"相似度\"当\"距离\"了。一句话根治：**方向类指标有负数（余弦 [-1,1]），距离类指标非负（欧氏 [0,+∞)），点积无界（(-∞,+∞)）。**"},{"c":"star","s":1,"t":"single","lv":"L3","tag":"🔆 相似度怎么选","q":"如果把所有向量都做了归一化（模长为 1），那么点积和余弦相似度的关系是？","o":["点积大于余弦相似度","点积等于余弦相似度","点积小于余弦相似度","两者没有关系"],"a":[1],"e":"归一化后 ‖a‖=‖b‖=1，余弦的除数变成 1 → **点积 = 余弦**。所以很多向量库入库时就做归一化，之后直接用点积检索，既快又保留语义性质。"}];
+
+/* =========================================================
+   状态
+   ========================================================= */
+const LS_WRONG = "aag_quiz_wrong_v2";
+const state = {
+  mode:"all", chapter:"all", pageSize:10, page:0,
+  queue:[], picks:{}, results:{}, graded:false, showResult:false
+};
+const $ = (id)=>document.getElementById(id);
+const sheet = $("sheet");
+const LETTERS = "ABCDEFGH";
+
+function loadWrong(){ try{ return JSON.parse(localStorage.getItem(LS_WRONG)||"[]"); }catch(e){ return []; } }
+function saveWrong(a){ try{ localStorage.setItem(LS_WRONG, JSON.stringify(a)); }catch(e){} }
+function addWrong(i){ const w=loadWrong(); if(w.indexOf(i)<0){ w.push(i); saveWrong(w);} }
+function delWrong(i){ const w=loadWrong(); const k=w.indexOf(i); if(k>=0){ w.splice(k,1); saveWrong(w);} }
+
+function sameSet(a,b){
+  if(a.length!==b.length) return false;
+  return a.slice().sort().join(",") === b.slice().sort().join(",");
+}
+
+/* ---------- 组卷 ---------- */
+function buildQueue(){
+  let pool = BANK.map((q,i)=>({q,i}));
+  if (state.mode==="star") pool = pool.filter(x=>x.q.s===1);
+  if (state.mode==="wrong"){ const w=loadWrong(); pool = pool.filter(x=>w.indexOf(x.i)>=0); }
+  if (state.chapter!=="all"){
+    pool = state.chapter==="star"
+      ? pool.filter(x=>x.q.c==="star")
+      : pool.filter(x=>x.q.c===state.chapter && x.q.s!==1);
+  }
+  return pool;
+}
+
+function start(keepPage){
+  state.queue = buildQueue();
+  state.picks = {}; state.results = {}; state.graded = false; state.showResult = false;
+  if (!keepPage) state.page = 0;
+  const tp = totalPages();
+  if (state.page >= tp) state.page = Math.max(0, tp-1);
+  renderAll();
+}
+
+const totalPages = ()=> Math.max(1, Math.ceil(state.queue.length / state.pageSize));
+const pageStart = ()=> state.page * state.pageSize;
+function pageItems(){
+  const s = pageStart();
+  return state.queue.slice(s, s + state.pageSize).map((item, k)=>({item, pos:s+k}));
+}
+const answeredCount = ()=> Object.keys(state.picks).filter(k=>state.picks[k] && state.picks[k].length).length;
+const gradedCount   = ()=> Object.keys(state.results).length;
+const rightCount    = ()=> Object.values(state.results).filter(r=>r.ok).length;
+const wrongPos      = ()=> Object.keys(state.results).filter(k=>!state.results[k].ok).map(Number);
+
+/* ---------- 选答：只记录选择，不判题 ---------- */
+function pick(pos, j){
+  if (state.results[pos]) return;                 /* 已判分的题锁定 */
+  const q = state.queue[pos].q;
+  if (q.t === "multi"){
+    const cur = state.picks[pos] || (state.picks[pos] = []);
+    const k = cur.indexOf(j);
+    if (k>=0) cur.splice(k,1); else cur.push(j);
+    if (!cur.length) delete state.picks[pos];
+  } else {
+    state.picks[pos] = [j];
+  }
+  refreshCard(pos); refreshNav(); refreshStats(); refreshPager();
+}
+
+/* ---------- 交卷：统一判分，结果原地标回每题 ---------- */
+function gradeAll(){
+  state.results = {};
+  state.queue.forEach((x,pos)=>{
+    const p = state.picks[pos];
+    if (!p || !p.length) return;
+    const ok = sameSet(p, x.q.a);
+    state.results[pos] = { picked: p.slice(), ok };
+    if (ok) delWrong(x.i); else addWrong(x.i);
+  });
+  state.graded = true;
+  renderSheet(); refreshNav(); refreshStats(); refreshPager();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+/* ---------- 继续修改：解除判分，并撤销本轮错题登记 ---------- */
+function ungrade(){
+  Object.keys(state.results).forEach(pos=> delWrong(state.queue[pos].i));
+  state.results = {}; state.graded = false;
+  renderSheet(); refreshNav(); refreshStats(); refreshPager();
+}
+
+/* ---------- 渲染 ---------- */
+function renderAll(){
+  if (state.showResult){ renderResult(); return; }
+  if (!state.queue.length){ renderEmpty(); return; }
+  $("navwrap").classList.remove("hide");
+  $("pager").classList.remove("hide");
+  renderSheet(); refreshNav(); refreshStats(); refreshPager();
+}
+
+function renderEmpty(){
+  $("navwrap").classList.add("hide");
+  $("pager").classList.add("hide");
+  $("statbar").innerHTML = "";
+  $("progress").style.width = "0%";
+  sheet.innerHTML = '<div class="result"><div style="color:#7b8794;font-size:14px">' +
+    (state.mode==="wrong"
+      ? '错题池是空的——先去「全部练习」或「🔆 强化专项」做一轮。'
+      : '这个筛选条件下没有题目，换个条件试试。') + '</div></div>';
+}
+
+function renderSheet(){
+  sheet.innerHTML = pageItems().map(x=>cardHTML(x.pos)).join("");
+}
+
+function cardHTML(pos){
+  const {q} = state.queue[pos];
+  const r = state.results[pos];
+  const picked = state.picks[pos] || [];
+  const locked = !!r;
+
+  let opts = "";
+  q.o.forEach((text, j)=>{
+    let cls = "opt";
+    if (r){
+      if (q.a.indexOf(j)>=0) cls += " correct";
+      else if (r.picked.indexOf(j)>=0) cls += " wrong";
+    } else if (picked.indexOf(j)>=0){
+      cls += " sel";
+    }
+    opts += '<button class="'+cls+'" data-pos="'+pos+'" data-j="'+j+'"'+(locked?" disabled":"")+'>'+
+            '<span class="key">'+LETTERS[j]+'</span><span>'+text+'</span></button>';
+  });
+
+  let foot = "";
+  if (!r){
+    const hint = q.t==="multi" ? "可多选，选完不用确认，交卷时统一判分" : "选中即可，交卷时统一判分";
+    foot = '<span class="tip">' +
+      (picked.length ? '已选 '+picked.map(j=>LETTERS[j]).join(" ") + '　·　' : '') + hint + '</span>';
+  }
+
+  let fb = "";
+  if (r){
+    const right = q.a.map(j=>LETTERS[j]).join("");
+    const mine = r.picked.length ? r.picked.map(j=>LETTERS[j]).join("") : "未作答";
+    fb = '<div class="fb '+(r.ok?"ok":"no")+'">'+
+           '<div class="verdict">'+(r.ok?"✅ 答对了":"❌ 答错了")+'　'+
+             '<span style="font-weight:500;font-size:13px">正确答案 '+right+
+             (r.ok?"":'　|　你选了 '+mine)+'</span></div>'+
+           '<div class="ex">'+q.e+'</div>'+
+           '<div class="link">知识点：'+q.tag+'　·　难度 '+q.lv+(q.s?'　·　🔆 强化专项':'')+'</div>'+
+         '</div>';
+  }
+
+  let st;
+  if (r) st = r.ok ? '<span class="state s-right">✅ 已答对</span>'
+                   : '<span class="state s-wrong">❌ 已答错</span>';
+  else if (picked.length) st = '<span class="state s-done">已作答</span>';
+  else st = '<span class="state s-none">未答</span>';
+
+  return '<article class="qcard" id="qc-'+pos+'">'+
+      '<div class="chead">'+
+        '<span class="qno">'+(pos+1)+' / '+state.queue.length+'</span>'+
+        '<span class="pill '+(q.t==="multi"?"p-multi":"p-type")+'">'+(q.t==="multi"?"多选":"单选")+'</span>'+
+        '<span class="pill p-lv">'+q.lv+'</span>'+
+        '<span class="pill p-tag">'+q.tag+'</span>'+
+        (q.s?'<span class="pill p-star">🔆 强化专项</span>':'')+
+        '<span class="grow"></span>'+ st +
+      '</div>'+
+      '<p class="qtext">'+q.q+'</p>'+
+      '<div class="opts">'+opts+'</div>'+
+      '<div class="cfoot">'+foot+'</div>'+
+      fb +
+    '</article>';
+}
+
+function refreshCard(pos){
+  const el = $("qc-"+pos);
+  if (el) el.outerHTML = cardHTML(pos);
+}
+
+function refreshNav(){
+  const cur = pageItems().map(x=>x.pos);
+  const graded = state.graded;
+  $("navgrid").innerHTML = state.queue.map((x,pos)=>{
+    const r = state.results[pos];
+    const picked = state.picks[pos];
+    let cls = "navbtn";
+    if (graded && r) cls += r.ok ? " right" : " wrong";
+    else if (!graded && picked && picked.length) cls += " done";
+    if (cur.indexOf(pos)>=0) cls += " cur";
+    return '<button class="'+cls+'" data-act="jump" data-pos="'+pos+'" title="第 '+(pos+1)+' 题">'+(pos+1)+'</button>';
+  }).join("");
+
+  const c = $("navCount");
+  if (c) c.textContent = graded
+    ? (rightCount()+' / '+state.queue.length+' 对')
+    : (answeredCount()+' / '+state.queue.length);
+
+  const lg = $("navLegend");
+  if (lg) lg.innerHTML = graded
+    ? '<span class="dot"><i style="background:#fff;border:1px solid #e3e7ec"></i>未答</span>'+
+      '<span class="dot"><i style="background:#e7f6ef;border:1px solid #b7e2ce"></i>对</span>'+
+      '<span class="dot"><i style="background:#fdecea;border:1px solid #f5c6c0"></i>错</span>'
+    : '<span class="dot"><i style="background:#fff;border:1px solid #e3e7ec"></i>未答</span>'+
+      '<span class="dot"><i style="background:#eaf1fe;border:1px solid #bcd4fb"></i>已作答</span>';
+}
+
+function refreshStats(){
+  const total = state.queue.length, n = answeredCount();
+  if (state.graded){
+    const g = gradedCount(), ok = rightCount();
+    const acc = g ? Math.round(ok/g*100)+"%" : "—";
+    $("statbar").innerHTML =
+      '共 <b>'+total+'</b> 题　·　已判 <b>'+g+'</b>　·　未答 <b>'+(total-g)+'</b>'+
+      '　·　答对 <b>'+ok+'</b>　·　答错 <b>'+(g-ok)+'</b>　·　正确率 <b>'+acc+'</b>'+
+      '　·　错题池 <b>'+loadWrong().length+'</b>';
+    $("progress").style.width = (total ? Math.round(g/total*100) : 0)+"%";
+  } else {
+    $("statbar").innerHTML =
+      '共 <b>'+total+'</b> 题　·　已作答 <b>'+n+'</b>　·　未作答 <b>'+(total-n)+'</b>'+
+      '　·　判分后才知道对错　·　错题池 <b>'+loadWrong().length+'</b>';
+    $("progress").style.width = (total ? Math.round(n/total*100) : 0)+"%";
+  }
+}
+
+function refreshPager(){
+  const tp = totalPages(), graded = state.graded;
+  let left = "";
+  if (tp > 1){
+    let chips = "";
+    for (let p=0;p<tp;p++){
+      const s = p*state.pageSize, e = Math.min(s+state.pageSize, state.queue.length);
+      let miss = 0;
+      for (let k=s;k<e;k++){
+        const doneNow = graded ? state.results[k] : (state.picks[k] && state.picks[k].length);
+        if (!doneNow) miss++;
+      }
+      chips += '<button class="pg'+(p===state.page?" on":"")+'" data-act="page" data-page="'+p+'">'+
+               (p+1) + (miss? '<span class="badge">'+miss+'</span>' : '') + '</button>';
+    }
+    left = '<button class="pillbtn" data-act="page" data-page="'+(state.page-1)+'"'+
+             (state.page===0?" disabled":"")+'>← 上一页</button>'+
+           '<div class="pages">'+chips+'</div>'+
+           '<button class="pillbtn" data-act="page" data-page="'+(state.page+1)+'"'+
+             (state.page>=tp-1?" disabled":"")+'>下一页 →</button>'+
+           '<span class="tip">第 '+(state.page+1)+' / '+tp+' 页</span>';
+  } else {
+    left = '<span class="tip">已全部显示（'+state.queue.length+' 题）</span>';
+  }
+
+  let right = "";
+  if (!graded){
+    const rest = state.queue.length - answeredCount();
+    right = '<span class="tip">'+(rest>0 ? '还有 '+rest+' 题未答' : '已全部作答')+'</span>'+
+            '<button class="btn" data-act="submit">交卷判分</button>';
+  } else {
+    const g = gradedCount(), ok = rightCount();
+    const acc = g ? Math.round(ok/g*100)+"%" : "—";
+    right = '<span class="tip">答对 '+ok+'　答错 '+(g-ok)+'　正确率 '+acc+'</span>'+
+            '<button class="ghost btn" data-act="result">错题清单</button>'+
+            '<button class="pillbtn" data-act="ungrade">继续修改</button>'+
+            '<button class="btn" data-act="again">全部重做</button>';
+  }
+  $("pager").innerHTML = left + '<span class="sep"></span>' + right;
+}
+
+/* ---------- 成绩单（错题清单） ---------- */
+function renderResult(){
+  $("navwrap").classList.add("hide");
+  $("pager").classList.add("hide");
+  const total = state.queue.length, g = gradedCount(), ok = rightCount();
+  const miss = total - g;
+  const pct = g ? Math.round(ok/g*100) : 0;
+  const wrongs = wrongPos();
+
+  let list = "";
+  if (wrongs.length){
+    list = wrongs.map(pos=>{
+      const q = state.queue[pos].q, r = state.results[pos];
+      return '<div class="rcard"><div class="q">'+(pos+1)+'. '+q.q+'</div>'+
+             '<div class="m">正确答案 <span class="okline">'+q.a.map(j=>LETTERS[j]).join("")+
+             '</span>　|　你选了 <span class="noline">'+
+             (r.picked.length?r.picked.map(j=>LETTERS[j]).join(""):"—")+'</span>'+
+             '　·　'+q.tag+'　·　'+q.lv+'</div></div>';
+    }).join("");
+  } else {
+    list = '<div style="color:#7b8794;font-size:13.6px">已判分的题全部答对，没有错题。</div>';
+  }
+
+  sheet.innerHTML =
+    '<div class="result">'+
+      '<div class="score">'+pct+'<small>%　正确率</small></div>'+
+      '<div class="rsplit">答对 <b>'+ok+'</b> / 已判 <b>'+g+'</b> 题'+
+        (miss>0 ? '　·　还有 <b style="color:#b06f00">'+miss+'</b> 题未作答（未计入正确率）' : '') +'</div>'+
+      '<h3 style="font-size:14.5px;margin:0 0 9px">错题清单（'+wrongs.length+'）</h3>'+
+      list+
+      '<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:16px">'+
+        '<button class="btn" data-act="back">返回试卷看解析</button>'+
+        '<button class="ghost btn" data-act="wrongmode">只做错题（'+loadWrong().length+'）</button>'+
+        '<button class="ghost btn" data-act="again">全部重做</button>'+
+      '</div>'+
+    '</div>';
+}
+
+/* ---------- 交互 ---------- */
+document.addEventListener("click", (e)=>{
+  const el = e.target.closest("[data-pos],[data-act]");
+  if (!el) return;
+  const act = el.dataset.act;
+
+  /* 选项：只记录，不判题 */
+  if (el.classList.contains("opt")){
+    if (state.graded) return;
+    pick(Number(el.dataset.pos), Number(el.dataset.j));
+    return;
+  }
+
+  if (act === "submit"){
+    if (state.graded) return;
+    const miss = state.queue.length - answeredCount();
+    if (miss > 0 && !confirm("还有 "+miss+" 题未作答，确定交卷判分吗？")) return;
+    gradeAll();
+    return;
+  }
+
+  if (act === "ungrade"){
+    if (!confirm("解除判分、回到答题状态修改答案？\n（本次判分写入错题池的记录会一并撤销，重新交卷会重新登记）")) return;
+    ungrade();
+    return;
+  }
+
+  if (act === "result"){
+    state.showResult = true; renderAll();
+    window.scrollTo({top:0, behavior:"smooth"});
+    return;
+  }
+  if (act === "back"){
+    state.showResult = false; renderAll();
+    window.scrollTo({top:0, behavior:"smooth"});
+    return;
+  }
+  if (act === "again"){ start(); return; }
+  if (act === "wrongmode"){ state.mode = "wrong"; syncModes(); start(); return; }
+
+  if (act === "jump"){
+    const pos = Number(el.dataset.pos);
+    const tp = Math.floor(pos / state.pageSize);
+    if (tp !== state.page){ state.page = tp; renderSheet(); }
+    refreshNav(); refreshPager();
+    const target = $("qc-"+pos);
+    if (target) target.scrollIntoView({behavior:"smooth", block:"start"});
+    return;
+  }
+
+  if (act === "page"){
+    const p = Number(el.dataset.page);
+    if (p < 0 || p >= totalPages()) return;
+    state.page = p;
+    renderSheet(); refreshNav(); refreshPager();
+    window.scrollTo({top:0, behavior:"smooth"});
+    return;
+  }
+});
+
+/* 模式 / 筛选 */
+function syncModes(){
+  document.querySelectorAll(".pillbtn[data-mode]").forEach(b=>{
+    b.classList.toggle("on", b.dataset.mode === state.mode);
+  });
+}
+document.querySelectorAll(".pillbtn[data-mode]").forEach(b=>{
+  b.onclick = ()=>{ state.mode = b.dataset.mode; syncModes(); start(); };
+});
+$("chapterFilter").onchange = (e)=>{ state.chapter = e.target.value; start(); };
+$("pageSize").onchange = (e)=>{ state.pageSize = Number(e.target.value); state.page = 0; renderAll(); };
+$("resetBtn").onclick = ()=>{
+  if (state.mode === "wrong"){
+    if (!confirm("清空全部错题记录？")) return;
+    saveWrong([]);
+  } else {
+    if (!confirm("清空本次答题进度？")) return;
+  }
+  start();
+};
+
+/* 键盘：左右翻页 */
+document.addEventListener("keydown", (e)=>{
+  if (state.showResult) return;
+  if (e.key === "ArrowLeft" && state.page > 0){
+    state.page--; renderSheet(); refreshNav(); refreshPager();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if (e.key === "ArrowRight" && state.page < totalPages()-1){
+    state.page++; renderSheet(); refreshNav(); refreshPager();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+});
+
+/* 答题卡：贴着正文右侧的悬浮面板，可折叠（首屏窄视口默认收起） */
+const LS_NAV = "aag_quiz_nav_collapsed_v1";
+let navCollapsed = (function(){
+  let v = null;
+  try { v = localStorage.getItem(LS_NAV); } catch(e){}
+  if (v === null || v === undefined) return (window.innerWidth || 9999) < 860;
+  return v === "1";
+})();
+function applyNavCollapsed(){
+  const w = $("navwrap");
+  if (w) w.classList.toggle("collapsed", navCollapsed);
+}
+const navHead = $("navHead");
+if (navHead){
+  navHead.onclick = ()=>{
+    navCollapsed = !navCollapsed;
+    applyNavCollapsed();
+    try { localStorage.setItem(LS_NAV, navCollapsed ? "1" : "0"); } catch(e){}
+  };
+}
+applyNavCollapsed();
+
+start();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^python -m py_compile \"4-代码区\\\\agent\\.py\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^& \"d:\\\\TestProjects\\\\playmind\\\\AiAgentGuide\\\\\\.venv\\\\Scripts\\\\python\\.exe\" -m py_compile \"agent\\.py\"; & \"d:\\\\TestProjects\\\\playmind\\\\AiAgentGuide\\\\\\.venv\\\\Scripts\\\\python\\.exe\" -c \"from agent import AgentTracer; from types import SimpleNamespace; usage = SimpleNamespace\\(prompt_tokens=1000, completion_tokens=500, total_tokens=1500, prompt_cache_hit_tokens=200, prompt_cache_miss_tokens=800\\); tracer = AgentTracer\\(\\); tracer\\.record_loop\\(1, SimpleNamespace\\(usage=usage\\), 0\\.25, \\['plan_trip'\\]\\); tracer\\.print_report\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
