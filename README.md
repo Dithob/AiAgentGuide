@@ -63,7 +63,7 @@ cd AiAgentGuide
 node tools/export-bank.js   # ① 从 01-选择题 重新抽取（会覆盖 bank.json）
 #    → 手工编辑 3-测验/bank.json（增删改题、调 tag、调 w）
 node tools/build.js         # ② 把 bank.json 内联进 index.html
-node tools/run-tests.js     # ③ 45 项回归测试
+node tools/run-tests.js     # ③ 69 项回归测试
 ```
 
 一键等价：`npm run sync`（= export → build → test）。
@@ -135,7 +135,8 @@ node tools/run-tests.js     # ③ 45 项回归测试
 - 知识库：**15 条**（01~16，跳号无 10 之前缺项）—— 01~09 覆盖 Agent 全景 → 思维框架；10~16 覆盖 Agent 定义 / 8步链路与调度 / 权限可逆性 / Agent Loop / 工具 Schema 与异常 / 多工具与成本 / 边界与混合架构
 - 面试题库：选择题 **72 道**（ch00 15 + ch01 27 + ch02 15 + ch03 15）、开放题 **30 道**（O-01 ~ O-30）
 - 测验：**90 题**（教程原题 72 + 🔆 强化派生 18），已外置为 `3-测验/bank.json`（唯一编辑入口），含错题池（按稳定 id 持久化）
-- 测试：`npm run test` → **45 项全绿**（引擎逻辑 25 / 渲染路径 15 / 部署形态 5）
+- 测试：`npm run test` → **69 项全绿**（引擎逻辑 25 / 渲染路径 15 / 部署形态 5 / 端到端流程 24）
+- 线上：<https://dithob.github.io/AiAgentGuide/> （GitHub Pages，`main` 分支根目录）
 - 配套代码：`4-代码区/first_agent/`（uv + Python 3.12）
 - 已解答你的疑问 3 处：位置编码是否多余 / 意图识别要不要拆独立子任务 / 多工具是否真的不用硬编码
 - 已根治错题 3 道：余弦相似度值域、128K Token 分配、多工具协作「无需硬编码」
