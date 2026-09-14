@@ -14,6 +14,7 @@
  *   ⑤ .qcard 宽度不为 0 且接近容器宽
  *
  * 找不到 Chrome / Edge 时**跳过**（打印 SKIP 并退出 0），不让缺浏览器阻断 CI。
+ * 候选路径：Windows 常见安装位置 + macOS（/Applications 与 ~/Applications 用户级安装）。
  *
  * 用法：node tools/test-layout.js
  */
@@ -28,12 +29,20 @@ const TMP = os.tmpdir();
 
 // ---------- 找浏览器 ----------
 function findBrowser() {
+  const HOME = process.env.HOME || '';
   const cands = [
+    // Windows
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
     path.join(process.env.LOCALAPPDATA || '', 'Google', 'Chrome', 'Application', 'chrome.exe'),
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    // macOS（系统级 / 用户级安装）
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    path.join(HOME, 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    path.join(HOME, 'Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'),
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
   ];
   for (const c of cands) { try { if (c && fs.existsSync(c)) return c; } catch (e) {} }
   return null;
