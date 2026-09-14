@@ -1,0 +1,377 @@
+# 第 4 章 · 与LLM沟通的语言
+
+> **来源**：<https://ai-agent-guide.xiaofuge.cn/> → 第 X 章
+> **记录日期**：YYYY-MM-DD　|　**重要度**：★★　|　**掌握度**：🟢 能讲清
+
+---
+
+## 📌 记号约定（记录区专用）
+
+| 记号 | 含义 | 整理阶段我会怎么处理 |
+| :--- | :--- | :--- |
+| `==……==` | **加强学习标记**——这个知识点要加深 | 知识库加「🔆 强化延伸」+ 派生测验题 |
+| `~~A~~ B` | 我选了 A（错），正确答案是 B | 记进面试题库错题表 → 写「错题根治」→ 进测验错题池 |
+| 原文摘录 | 我认为重要的原文，**原样贴** | 保真收录进知识库「📌 你的原文记录」，不改写 |
+| `> 疑问：……` | 我自己想到的问题 | 知识库「❓ 你的疑问解答」正面回答 + 配自测题 |
+
+> 记的时候别管格式好不好看。**记号是给整理阶段看的**，不是给别人看的。
+
+---
+
+## 🗺️ 一句话地图
+
+> 2~3 句话说清本章主线：解决什么问题、和上一章什么关系、学完能回答什么。
+> 目的是两个月后翻回来 5 秒想起整章。
+
+---
+
+## 📖 正文记录
+
+> 直接从教程**原样摘录**你认为重要的表格、代码、段落。别改写、别总结——改写留给整理阶段。
+> 判断标准：面试官问到这个，我答不上来会不会很难看？会 → 摘。
+
+### 第一层：Prompt 结构层
+
+结构层是提示词的"骨架"，定义了信息的组织方式。一个完整的生产级 Prompt 通常包含 **6 个结构单元**：
+
+📐 6 个结构单元
+
+| 单元          | 作用                                 | 必填 |
+| :------------ | :----------------------------------- | :--- |
+| **Role**      | 角色设定，决定知识边界与回答风格     | ✅    |
+| **Directive** | 核心指令，描述要做什么               | ✅    |
+| **Context**   | 背景信息，提供决策依据               | 可选 |
+| **Exemplars** | 示例（Few-shot），引导输出格式与风格 | 可选 |
+| **Format**    | 输出格式约束（JSON/Markdown/表格）   | 推荐 |
+| **Style**     | 风格约束（语气、长度、细节程度）     | 可选 |
+
+### 第二层：工程方法层
+
+结构层定义了"骨架"，方法层决定"怎么思考"。这是提示词工程的核心——通过不同的技术手段引导 LLM 的推理过程。我们将在**第6章 ReAct 推理模式**中深入讲解 CoT、ToT、ReAct 等推理技术，这里先做一个全景了解：
+
+| 技术          | 一句话说明                      | 适用场景               |
+| :------------ | :------------------------------ | :--------------------- |
+| System Prompt | 模型行为的"操作系统"            | 所有 Agent 的基础      |
+| Role Playing  | 让 LLM 扮演特定角色             | 专业领域输出           |
+| Few-shot      | 给几个示例引导输出              | 格式固定、模式明确     |
+| CoT           | "请逐步思考"——展示推理过程      | 数学、逻辑、多步推理   |
+| ToT           | 探索多条路径再选最优            | 规划、决策、创意       |
+| ReAct         | Thought→Action→Observation 循环 | 工具调用、Agent 主循环 |
+| APE           | 让 LLM 自动生成和优化提示词     | 批量优化、自动化       |
+
+### 第三层：Answer Engineering（输出工程）
+
+输出工程关注"让 LLM 的回答可直接使用"。在 Agent 系统中，LLM 的输出不是给人看的，而是给**程序消费**的——下游代码需要解析、验证、执行。这意味着输出必须是结构化的、可解析的、可验证的。
+
+📤 输出工程三要素
+
+**① 结构化**：用 JSON Schema 约束输出格式，而非自由文本
+
+**② 解析**：下游代码用 JSON.parse() 而非正则表达式提取信息
+
+**③ 验证**：校验字段完整性、类型正确性、业务逻辑合法性
+
+---
+
+### LLM 参数工程
+
+🌡️ Temperature（温度）
+
+控制概率分布的"尖锐程度"。温度越低，模型越倾向于选概率最高的 Token（确定性增强）；温度越高，概率分布越平坦（多样性增强）。
+
+**Top-K**：硬截断——只从概率最高的 K 个 Token 中选。K=1 等于贪心解码（总是选最优），K=50 意味着从 Top 50 中采样。
+
+**Top-P**（核采样）：动态截断——从概率累积和达到 P 的最小 Token 集合中选。P=0.1 只考虑概率最高的少数几个 Token，P=0.9 则保留更多选项。
+
+- **Repetition Penalty**（1.0-1.3）：降低已出现 Token 的概率。值越高惩罚越强，但太高会导致输出不通顺。
+- **Frequency Penalty**（0.0-0.3）：按频率惩罚——出现次数越多的 Token 被惩罚越重。
+
+输出原生json
+
+```python
+# OpenAI Structured Output
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[...],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "AgentDecision",
+            "strict": True,  # 严格模式：不允许额外字段
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "thought": {"type": "string"},
+                    "action": {"type": "string", "enum": ["call_tool", "respond", "ask_user"]},
+                    "tool_name": {"type": "string"},
+                    "tool_args": {"type": "object"},
+                    "answer": {"type": "string"}
+                },
+                "required": ["thought", "action"]
+            }
+        }
+    }
+)
+# 输出保证是合法 JSON，且符合 Schema
+decision = json.loads(response.choices[0].message.content)
+```
+
+### C.L.E.A.R 原则
+
+好的提示词有五个共性，可以用 **C.L.E.A.R** 来记忆：
+
+| 原则           | 含义             | 反例 → 正例                                                  |
+| :------------- | :--------------- | :----------------------------------------------------------- |
+| C — Concise    | 简洁，剔除冗余   | "帮我生成一个你觉得合适的设计" → "生成一个 SaaS 产品落地页，包含 Hero、Features、Pricing 三段" |
+| L — Logical    | 有逻辑，条理分明 | 大段文字描述 → 用编号步骤：①分析需求 ②设计方案 ③输出代码     |
+| E — Explicit   | 明确，不留歧义   | "写得专业一点" → "语气正式，用第三人称，每段不超过 3 句话"   |
+| A — Adaptive   | 可迭代优化       | 一次性写死 → 先草稿，测试效果后逐步改进                      |
+| R — Reflective | 可复盘复用       | 用过就丢 → 保存高质量 Prompt 到模板库，标注适用场景          |
+
+
+
+💡 Few-shot 选择技巧
+
+**① 示例数量**：1-3 个通常足够，超过 5 个边际收益递减
+
+**② 示例多样性**：不要给 3 个高度相似的例子，要覆盖不同情况
+
+**③ 示例顺序**：将最相关的示例放在最后（靠近实际输入），效果最佳
+
+**④ 标签一致**：所有示例的输出格式必须完全一致，否则模型会困惑
+
+
+
+### ==模板化提示词==
+
+当 Agent 的提示词从一段文字变成一个工程产物，你面临的核心矛盾是：**提示词需要同时具备可读性、可复用性和动态渲染能力**。直接用字符串拼接？当变量超过 3 个就开始混乱。用 f-string？无法条件渲染和循环。
+
+解决方案是**模板引擎**——最常用的是 Jinja2 语法（Python 生态）和 Mustache/Handlebars（JS 生态）。
+
+#### ==Jinja2 四大能力==
+
+```python
+from jinja2 import Template
+
+# 能力1：变量注入
+tpl = Template("你是一个{{ role }}，请{{ task }}")
+print(tpl.render(role="天气助手", task="查询天气"))
+# → 你是一个天气助手，请查询天气
+
+# 能力2：条件逻辑
+tpl2 = Template("""
+{% if has_tools %}
+你有以下工具可用：
+{% for tool in tools %}
+- {{ tool.name }}: {{ tool.description }}
+{% endfor %}
+{% else %}
+你当前没有工具可用，请直接回答用户问题。
+{% endif %}
+""")
+
+# 能力3：循环渲染
+tools = [
+    {"name": "get_weather", "description": "查询天气"},
+    {"name": "get_time", "description": "获取当前时间"},
+]
+print(tpl2.render(has_tools=True, tools=tools))
+
+# 能力4：模板继承（复用基础模板）
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader("templates/"))
+# base.j2: "你是{{ role }}。{{ block 'directive' }}"
+# weather.j2: "{% extends 'base.j2' %}{% block directive %}查询天气{% endblock %}"
+```
+
+
+
+### PromptOps：提示词的工程化管理
+
+当你有 10+ 个 Prompt 模板、5+ 个 Agent 角色、频繁的迭代需求时，"改一个词 → 手动测试 → 上线 → 发现回退"的原始流程就不够用了。你需要 **PromptOps**——把提示词当代码管理。
+
+#### 提示词即接口（Prompt as Interface）
+
+在 Agent 系统中，每个 Prompt 都是一个**接口**——有输入契约、输出约定、错误处理和版本控制
+
+| 设计要素     | 含义                              | 类比 API     |
+| :----------- | :-------------------------------- | :----------- |
+| **输入契约** | 模板变量 + 类型约束 + 必填校验    | API 请求参数 |
+| **输出约定** | JSON Schema / 格式约束 + 字段说明 | API 响应格式 |
+| **错误处理** | 解析失败重试、降级策略、超时处理  | API 错误码   |
+| **版本控制** | 语义化版本 + 变更日志 + 回滚能力  | API 版本号   |
+
+
+
+### Prompt 分区缓存设计
+
+| 分区         | 内容                                                 | 跨用户可缓存 | 跨会话可缓存 |
+| :----------- | :--------------------------------------------------- | :----------- | :----------- |
+| **静态区**   | 工具使用规则、安全策略、输出格式规范、Git 安全协议   | ✅ 是         | ✅ 是         |
+| **半静态区** | 用户偏好、项目配置、记忆文件                         | ❌ 否         | ✅ 同会话内   |
+| **动态区**   | MCP 指令（服务器连接状态变化）、临时指令、Agent 列表 | ❌ 否         | ❌ 每轮变化   |
+
+#### Memoized vs Uncached：两种动态分节策略
+
+动态区的内容并非每轮都变。Claude Code 将动态分节分为两类：
+
+📝 Memoized Section（有缓存的动态分节）
+
+用 `systemPromptSection()` 包装。内容在 `/clear` 或 `/compact` 之前保持不变，跨轮次复用。典型场景：用户偏好、项目配置、记忆文件摘要。
+
+**实现**：memoize 函数以配置对象为 key，配置不变则返回缓存结果。当 `/clear` 或 `/compact` 触发时重置 memoize 缓存。
+
+⚠️ Uncached Section（无缓存的动态分节）
+
+用 `DANGEROUS_uncachedSystemPromptSection()` 包装。每轮重新计算，会破坏 Prompt 缓存。典型场景：MCP instructions（服务器连接状态每轮可能变化）。
+
+**为什么"DANGEROUS"**：函数名中带 DANGEROUS 是提醒开发者——每轮重算意味着 prompt prefix 改变，导致 API 提供商的 prompt cache 全部 miss。1000+ token 的缓存 miss 意味着额外的延迟和成本。
+
+```
+┌─────────────────────────────────────────┐
+│  静态区（跨用户可缓存）                     │
+│  1. intro          自我介绍               │
+│  2. system         系统级指令             │
+│  3. doingTasks     任务执行规则            │
+│  4. actions        操作安全策略            │
+│  5. usingTools     工具使用规则            │
+│  6. toneStyle      沟通风格               │
+│  7. outputEfficiency 输出效率              │
+├─────────────────────────────────────────┤  ← DYNAMIC_BOUNDARY
+│  半静态区（同会话内可缓存）                  │
+│  8. session_guidance 会话级引导            │
+│  9. memory         记忆文件摘要            │
+│  10. env_info      环境信息               │
+│  11. language      语言偏好               │
+│  12. output_style  输出样式               │
+├─────────────────────────────────────────┤
+│  动态区（每轮可能变化）                      │
+│  13. mcp_instructions MCP 服务器指令       │
+│  14. scratchpad     临时草稿              │
+│  15. frc            功能路由上下文          │
+│  16. summarize_tool_results 工具结果摘要   │
+└─────────────────────────────────────────┘
+```
+
+####  对比：教学级 vs 工业级 PromptOps
+
+| 维度            | 教学级 PromptOps（4.6） | 工业级 PromptOps（4.7）             |
+| :-------------- | :---------------------- | :---------------------------------- |
+| **关注点**      | 模板版本管理、灰度发布  | 缓存命中率、token 成本优化          |
+| **Prompt 结构** | 单一模板字符串          | 分区组装（静态/半静态/动态）        |
+| **缓存策略**    | 不关注                  | memoized vs uncached，boundary 分界 |
+| **Token 优化**  | 模板复用减少重复编写    | dedup 去重、路径归一化、描述预算    |
+| **可观测性**    | 版本日志、质量评分      | 缓存命中率监控、token 消耗追踪      |
+
+> 所以为什么 MCP 指令会破坏缓存，服务器连接状态每轮可能变化？
+
+
+
+### 实战：从 WaLiCode 看提示词工程落地
+
+#### 场景五：Skill 技能包的 Prompt 模板化
+
+WaLiCode 支持从 `~/.walicode/skills/` 加载 Skill 技能包。每个 Skill 本质上是一个 **Prompt 模板 + 工具白名单**。在 `src/services/skillManager.ts` 中，内置 Skill 的定义如下：
+
+Typescript
+
+📋
+
+```typescript
+export const BUILT_IN_SKILLS: SkillDefinition[] = [
+  {
+    id: 'code-review',
+    name: 'Code Review',
+    description: 'Review code for bugs, style issues, and improvement suggestions',
+    promptTemplate: `You are a senior code reviewer. Review the following code thoroughly:
+
+**Focus areas:**
+- Bugs and potential runtime errors
+- Security vulnerabilities
+- Performance issues
+...
+
+{{code}}`,
+    requiredTools: ['read_file', 'search_code', 'GrepTool'],
+    status: 'available',
+    source: 'builtin',
+  },
+  // ...
+];
+```
+
+Skill 系统的工程价值在于：
+
+- **Prompt 模块化**：不同能力拆成独立模板，按需注入。
+- **工具权限隔离**：每个 Skill 声明 `requiredTools`，避免无关工具干扰。
+- **懒加载**：默认只注入 Skill 清单（name + description + whenToUse），执行时才展开完整内容，节省 token。
+- **热更新**：文件系统 Skill 修改后自动重新加载。
+
+这其实就是 PromptOps 的一种落地形态：把提示词当可注册、可版本化、可动态加载的组件管理。
+
+#### WaLiCode 提示词工程的 6 条经验
+
+| 经验          | 说明                                                   | 落地位置                                   |
+| :------------ | :----------------------------------------------------- | :----------------------------------------- |
+| 1. 分层缓存   | 静态层长期缓存，半静态层按身份 hash 缓存，动态层不缓存 | SystemPromptCache                          |
+| 2. 角色隔离   | 编码助手、DevOps 工程师、子 Agent 用不同 system prompt | buildSystemPrompt / buildAgentSystemPrompt |
+| 3. 模板化     | Skill、子 Agent、工具描述都使用模板 + 变量注入         | skillManager / skillFsLoader               |
+| 4. 结构化输出 | 分类器、意图识别、工具参数都约束为 JSON                | permissionGuard / ModelIntentClassifier    |
+| 5. 上下文压缩 | 长对话按轮次摘要，保留决策和进度而非代码细节           | contextCompressor                          |
+| 6. 可观测     | 记录 system prompt 长度、hash、注入内容，便于调试      | buildSystemPromptLayers 日志               |
+
+## 🔑 八股卡
+
+> 教程自带的「📋 八股总结」「📋 补充八股题」原文，**整段贴进来**。
+> **想加强的那几条，用 `==……==` 把标题包起来。**
+
+==Q5: 为什么 Agent 系统要用 Jinja2 模板而不是字符串拼接？==
+
+字符串拼接（f-string、+ 号拼接）有三个问题：①**可读性差**——变量超过 3 个就混乱 ②**无法条件渲染**——"有工具时显示工具列表，无工具时显示提示语"用拼接很难写 ③**无法复用**——多个 Agent 共享基础模板时无法继承。
+
+Jinja2 解决了这三个问题：变量注入（`{{ var }}`）、条件逻辑（`{% if %}`）、循环渲染（`{% for %}`）、模板继承（`{% extends %}`）。这让 Prompt 与业务逻辑解耦——模板文件管理提示词，代码只负责准备数据。
+
+Q6: C.L.E.A.R 原则是什么？举个反例和正例。
+
+**C**oncise（简洁）、**L**ogical（有逻辑）、**E**xplicit（明确）、**A**daptive（可迭代）、**R**eflective（可复盘）。
+
+反例："帮我写一个好的产品介绍"——不简洁、不明确、无格式约束。
+正例："为 SaaS 产品写 150 字介绍，突出自动化和节约成本两个卖点，语气正式，用第三人称，输出 Markdown 格式"——简洁、明确、有格式约束、可测试。
+
+
+
+Q8: 工业级 Agent 的 System Prompt 为什么要做分区缓存设计？静态区和动态区如何划分？
+
+**原因**：工业级 Agent 的 System Prompt 可达 4000-6000 token（工具规则+安全策略+环境信息+记忆文件）。如果每轮全量发送，不仅成本高，还增加首 token 延迟。分区缓存可以让不变的部分跨请求复用。
+
+**划分方式**：①**静态区**（工具规则、安全策略）跨用户可缓存；②**半静态区**（用户偏好、记忆文件）同会话内可缓存；③**动态区**（MCP 指令、临时指令）每轮可能变化。
+
+**实现**：用 SYSTEM_PROMPT_DYNAMIC_BOUNDARY 标记分隔静态区和动态区。静态区用 global scope 缓存，半静态区用 memoize（以配置对象为 key），动态区用 DANGEROUS_uncachedSystemPromptSection（每轮重算）。越稳定的越靠前，最大化前缀缓存命中。
+
+
+
+---
+
+## 🧩 面试题（原题 + 我的答案）
+
+> **只记做错的题**，对的不用抄。
+> 记法：`~~X~~ Y` = 我选 X（错），正确答案是 Y。
+
+
+
+
+
+---
+
+## ❓ 疑问 / 待查
+
+> 汇总本章没解决的疑问（正文里就地标过的，这里可再列一次，方便统一解决）。
+
+
+
+---
+
+## 🔗 关联
+
+- **前置**：
+- **后续**：
