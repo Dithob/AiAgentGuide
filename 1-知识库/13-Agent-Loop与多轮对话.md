@@ -1,7 +1,7 @@
 # 13 · Agent Loop 与多轮对话
 
 > **来源**：ch03 §3.5~3.7　|　**整理**：2026-09-13　|　**最后核对**：2026-09-13
-> **标签**：#AgentLoop #ReAct #工程实现　|　**代码**：`4-代码区/first_agent/agent.py`
+> **标签**：#AgentLoop #ReAct #工程实现　|　**代码**：`4-code/first_agent/agent.py`
 > **关联**：10（闭环）、07（Function Calling）、17（边界）
 
 ---
@@ -127,5 +127,5 @@
 ## 🔗 关联
 
 - **关联条目**：10（闭环的工程落地）、15（历史累积带来的 token 递增）、14（循环里工具的异常处理）
-- **代码**：`4-代码区/first_agent/agent.py`（`run_agent()` 内层循环）
+- **代码**：`4-code/first_agent/agent.py`（`run_agent()` 内层循环）
 - **延伸章节**：第 6 章 ReAct（本循环的正式版 + ReWOO / Reflexion）、第 7 章 记忆系统

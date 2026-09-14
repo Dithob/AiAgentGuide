@@ -1,7 +1,7 @@
 # 14 · 工具 Schema 设计与异常处理
 
 > **来源**：ch03 §3.3~3.4、§3.8　|　**整理**：2026-09-13　|　**最后核对**：2026-09-13
-> **标签**：#Schema设计 #异常处理 #重试 #工程健壮性　|　**代码**：`4-代码区/first_agent/schema.py`
+> **标签**：#Schema设计 #异常处理 #重试 #工程健壮性　|　**代码**：`4-code/first_agent/schema.py`
 > **关联**：07（Function Calling）、13（Loop）
 
 ---
@@ -148,5 +148,5 @@ for attempt in range(max_retries + 1):
 ## 🔗 关联
 
 - **关联条目**：07（Function Calling 本质）、13（Loop 里怎么调工具）
-- **代码**：`4-代码区/first_agent/schema.py`、`agent.py::execute_tool_with_retry()`
+- **代码**：`4-code/first_agent/schema.py`、`agent.py::execute_tool_with_retry()`
 - **延伸章节**：第 13 章 Function Calling 与工具设计（Schema 进阶、工具路由）
