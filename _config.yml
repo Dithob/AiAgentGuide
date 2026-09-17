@@ -1,0 +1,44 @@
+# ───────────────────────────────────────────────────────────────
+# GitHub Pages 构建配置（改动前先看这段注释）
+#
+# 背景：本仓库用「Deploy from a branch → main / 根目录」发布，GitHub 默认
+# 会用 Jekyll 处理仓库里所有 Markdown。而本项目笔记里大量出现 Jinja2 模板
+# 语法（{% if %} / {% for %} / {% extends %} / {{ var }}），Jekyll 会把它当
+# 成自己的 Liquid 模板去解析，直接抛：
+#
+#   Liquid syntax error (line N): Syntax Error in tag 'if' - Valid syntax: if [expression]
+#
+# 于是 pages-build-deployment 从 2026-09-14 20:29（ch04 记录那条 commit）起
+# 连续失败，线上站点一直停在 09-14 的旧版本。
+#
+# 处理办法（双保险）：
+#   1) 仓库根的 .nojekyll —— 让 GitHub 直接跳过 Jekyll 构建（首选手段）
+#   2) 本文件的 exclude —— 万一 Jekyll 仍然执行，也不去解析这些笔记源文件
+#
+# 线上只需要两个静态页：index.html（工作台）与 3-测验/index.html（测验工具），
+# 二者都是自带样式的单文件，不依赖 Jekyll 的任何处理。
+#
+# ⚠️ 除非确定笔记里再也不会出现 {{ }} / {% %} 这类模板语法，否则别删本文件。
+# ───────────────────────────────────────────────────────────────
+
+exclude:
+  # 笔记源目录：Jinja2 语法所在处，必须排除（否则 Jekyll 构建必失败）
+  - 0-记录区/
+  - 1-知识库/
+  - 2-面试题库/
+  - 3-测验/bank.json   # 题库数据源，不是站点资源（同目录的 index.html 照常发布）
+  # 源材料与工具链，不参与构站
+  - 4-code/
+  - tools/
+  - src/
+  - backup/
+  - package.json
+  - pyproject.toml
+  - uv.lock
+  # Jekyll 默认排除项（自定义 exclude 会整体覆盖默认值，这里显式补回）
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+  - .sass-cache/
+  - .jekyll-cache/

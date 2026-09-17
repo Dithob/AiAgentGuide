@@ -116,6 +116,25 @@ node tools/run-tests.js     # ③ 121 项回归测试
 > 页面优先用内联数据；内联为空时自动回退到 `fetch('./bank.json')`。
 > 这样**既能单文件部署，又不牺牲改题效率** —— 直接双击能用，是因为数据已经躺在 HTML 里了。
 
+### GitHub Pages 发布（`https://dithob.github.io/AiAgentGuide/`）
+
+发布源 = 分支 `main` / 根目录，线上只提供两个静态页：`index.html`（工作台）与 `3-测验/index.html`（测验工具）。
+
+**⚠️ 别删根目录的 `.nojekyll` 与 `_config.yml`。** GitHub Pages 默认会用 Jekyll 处理仓库里所有 Markdown，而笔记里写着 Jinja2 模板语法（`{% if %}` / `{% for %}` / `{{ var }}`），Jekyll 会把它当成 Liquid 模板解析，报：
+
+```
+Liquid syntax error (line N): Syntax Error in tag 'if' - Valid syntax: if [expression]
+```
+
+2026-09-14 20:29 落笔 ch04（第一条含 Jinja2 语法的记录）后，`pages-build-deployment` 就此连续失败，线上站点一直冻结在 09-14 的版本。现在用两道保险挡住：
+
+| 文件 | 作用 |
+| :--- | :--- |
+| `.nojekyll` | 让 GitHub 直接跳过 Jekyll 构建（首选手段） |
+| `_config.yml` | `exclude` 掉 `0-记录区/`、`1-知识库/`、`2-面试题库/` 等源目录；万一 Jekyll 仍执行，也不会碰这些笔记 |
+
+> 排查线上是否正常：`gh run list -R Dithob/AiAgentGuide -L 3`，看 `pages build and deployment` 是否为 `success`。
+
 ## 多端同步（错题池 / 组卷参数 / 答题历史）
 
 **为什么需要**：答题状态存在浏览器 `localStorage` 里，换设备就没了。题库正文由 git 管，
