@@ -93,9 +93,12 @@ new Promise(r => setTimeout(r, 120)).then(() => {
     const cards = (sheet.innerHTML.match(/class="qcard"/g) || []).length;
     cards === 10 ? L.push('  ✅ 首页渲染 10 张题卡')
                  : L.push('  ❌ 首页题卡数 = ' + cards + '（应为 10）');
-    // 题号格式
-    sheet.innerHTML.indexOf('/ 90') >= 0 ? L.push('  ✅ 显示总题数 90')
-                                         : L.push('  ❌ 未显示总题数');
+    // 题号格式（总数从题库动态取，避免每次加题都手改断言）
+    const bankTotal = JSON.parse(
+      fs.readFileSync(path.join(ROOT, '3-测验', 'bank.json'), 'utf8')).length;
+    sheet.innerHTML.indexOf('/ ' + bankTotal) >= 0
+      ? L.push('  ✅ 显示总题数 ' + bankTotal)
+      : L.push('  ❌ 未显示总题数 ' + bankTotal);
     // 选项
     const opts = (sheet.innerHTML.match(/class="opt/g) || []).length;
     opts >= 40 ? L.push('  ✅ 选项按钮已渲染 (' + opts + ')')

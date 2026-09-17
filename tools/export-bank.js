@@ -1,7 +1,16 @@
 /**
- * export-bank.js — 从现有 index.html 抽出题库，补齐字段，输出 bank.json
+ * export-bank.js — 重算全部派生字段（id / concept / w），覆盖写 bank.json
+ *
+ * ⚠️ 覆盖写！它会按下面的推导规则**重新计算每一题的 w**，
+ *    因此在 bank.json 里手工调过的权重会被抹掉。跑之前先备份。
+ *    常规改题**不需要**跑这个脚本 —— bank.json 才是唯一编辑入口，
+ *    改完直接 `npm run build && npm test` 即可。
  *
  * 用法：node tools/export-bank.js
+ *
+ * 数据来源：3-测验/index.html 里内联的 BANK_INLINE
+ *   （早期版本 index.html 里是 `const BANK = [...]`，现已改为内联占位标记，
+ *     由 tools/build.js 注入。本脚本已同步适配。）
  *
  * 补齐字段：
  *   id       稳定唯一 ID（章节-序号），用于错题池持久化（替代不稳定的数组下标）
@@ -30,10 +39,20 @@ const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, '3-测验', 'index.html');
 const OUT = path.join(ROOT, '3-测验', 'bank.json');
 
+/* ---------- 0. 安全闸门 ---------- */
+// 本脚本会按规则重算每一题的 w 并覆盖 bank.json。手工调过的权重一旦被误跑抹掉，
+// 很难还原，所以要求显式 --force。（2026-09-18 加：bank.json 已是唯一编辑入口）
+if (!process.argv.includes('--force')) {
+  console.error('拒绝执行：本脚本会覆盖写 bank.json，并按规则重算全部 w。');
+  console.error('  常规改题：直接编辑 3-测验/bank.json → node tools/build.js → node tools/run-tests.js');
+  console.error('  确实要重算：node tools/export-bank.js --force');
+  process.exit(1);
+}
+
 /* ---------- 1. 抽出原始 BANK ---------- */
 const html = fs.readFileSync(SRC, 'utf8');
-const m = html.match(/const BANK = (\[[\s\S]*?\]);\n/);
-if (!m) throw new Error('未能在 index.html 中定位 const BANK = [...]');
+const m = html.match(/const BANK_INLINE = \/\*__BANK_INLINE__\*\/(\[[\s\S]*?\])\/\*__END_BANK_INLINE__\*\//);
+if (!m) throw new Error('未能在 index.html 中定位 BANK_INLINE 内容（先跑 node tools/build.js）');
 const raw = JSON.parse(m[1]);
 console.log('抽出题目数:', raw.length);
 

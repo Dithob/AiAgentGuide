@@ -1,7 +1,7 @@
 # 第 7 章 · Agent 的记忆系统
 
-> **来源**：<https://ai-agent-guide.xiaofuge.cn/> → 第 8 章
-> **记录日期**：YYYY-MM-DD　|　**重要度**：★★★　|　**掌握度**：
+> **来源**：<https://ai-agent-guide.xiaofuge.cn/> → 第 7 章　　
+> **记录日期**：2026-09-17　|　**重要度**：★★★　|　**掌握度**：
 
 ---
 

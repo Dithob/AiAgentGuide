@@ -101,16 +101,34 @@ function runTests() {
   }, o || {});
 
   reset(); let q = buildQueue();
-  q.length === 90 ? ok('全部练习 → 90 题') : bad('全部练习 → ' + q.length + ' 题（应为 90）');
+  q.length === BANK.length
+    ? ok('全部练习 → ' + q.length + ' 题')
+    : bad('全部练习 → ' + q.length + ' 题（应为 ' + BANK.length + '）');
 
+  const starTotal = BANK.filter(x => x.s === 1).length;
   reset({ mode: 'star' }); q = buildQueue();
-  q.length === 18 ? ok('🔆强化专项 → 18 题') : bad('🔆强化专项 → ' + q.length + ' 题（应为 18）');
+  q.length === starTotal
+    ? ok('🔆强化专项 → ' + starTotal + ' 题')
+    : bad('🔆强化专项 → ' + q.length + ' 题（应为 ' + starTotal + '）');
 
-  reset({ chapter: 'ch01' }); q = buildQueue();
-  q.length === 27 ? ok('仅 ch01 → 27 题') : bad('仅 ch01 → ' + q.length + ' 题（应为 27）');
+  // 逐章筛选应与题库统计一致（ch04~ch09 新增后改为全章遍历，避免每次加题都手改断言）
+  const chapters = [...new Set(BANK.map(x => x.c))].filter(c => c !== 'star');
+  let chapterAllOk = true;
+  chapters.forEach(c => {
+    reset({ chapter: c }); const r = buildQueue();
+    const want = BANK.filter(x => x.c === c && x.s !== 1).length;
+    if (r.length !== want) {
+      chapterAllOk = false;
+      bad('仅 ' + c + ' → ' + r.length + ' 题（应为 ' + want + '）');
+    }
+  });
+  if (chapterAllOk) ok('章节筛选 ' + chapters.length + ' 章全部与题库统计一致');
 
+  const starChapterTotal = BANK.filter(x => x.c === 'star').length;
   reset({ chapter: 'star' }); q = buildQueue();
-  q.length === 18 ? ok('仅强化（章节）→ 18 题') : bad('仅强化 → ' + q.length + ' 题');
+  q.length === starChapterTotal
+    ? ok('仅强化（章节）→ ' + starChapterTotal + ' 题')
+    : bad('仅强化 → ' + q.length + ' 题（应为 ' + starChapterTotal + '）');
 
   /* ---------- 规模 ---------- */
   L.push('');

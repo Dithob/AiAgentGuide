@@ -5,9 +5,10 @@
   "description": "AI Agent 学习笔记的测验工具：题库外置 + 按重点权重与知识点组卷",
   "scripts": {
     "export": "node tools/export-bank.js",
+    "recalc": "node tools/export-bank.js --force && node tools/build.js && node tools/run-tests.js",
     "build": "node tools/build.js",
     "test": "node tools/run-tests.js",
-    "sync": "node tools/export-bank.js && node tools/build.js && node tools/run-tests.js"
+    "sync": "node tools/build.js && node tools/run-tests.js"
   },
-  "note": "改题流程：编辑 3-测验/bank.json（唯一入口）→ npm run build → npm test → 双击 3-测验/index.html 验证"
+  "note": "改题流程：编辑 3-测验/bank.json（唯一入口）→ npm run build → npm test → 双击 3-测验/index.html 验证。注意 npm run export / recalc 是覆盖写（会按规则重算 w），日常别用。"
 }
