@@ -110,10 +110,10 @@
     解决一个问题：边学边记容易变成抄书，抄完记不住、面试讲不出。</p>
     <div class="meta">
       <span class="chip">建立 2026-09-13</span>
-      <span class="chip">已覆盖 第 0 ~ 9 章</span>
-      <span class="chip">知识库 22 条</span>
+      <span class="chip">已覆盖 第 0 ~ 12 章</span>
+      <span class="chip">知识库 25 条</span>
       <span class="chip">107 道测验题</span>
-      <span class="chip">4 处 ==高亮== 已延伸</span>
+      <span class="chip">7 处 ==高亮== 已延伸</span>
       <span class="chip">5 处 ❓疑问 已解答</span>
     </div>
   </header>
@@ -172,13 +172,21 @@
         ▼
 答错 → 自动进错题池 → 下一轮只练错题</pre>
   <div class="note">
-    <b>最新一批（2026-09-18）：</b>覆盖第 4~9 章 —— 知识库新增 6 条（17~22）、选择题补到 <b>81 道</b>、
+    <b>最新一批（2026-09-18）：</b>覆盖第 10~12 章 —— 知识库新增 3 条（<b>23 Harness 工程与六大组件</b> ·
+    <b>24 RAG 检索增强生成</b> · <b>25 LLM-Wiki 与知识持久化</b>）、选择题补到 <b>90 道</b>、开放题补到 <b>58 道</b>
+    （新增 O-43~O-58，其中 <b>RAG 组 O-47~O-55 是面试最高频的一组</b>）。
+    你在 ch11 标的 3 处 <code>==</code> 全部做了 🔆 强化延伸：<b>检索内容冲突怎么取舍</b>（元数据加权 + 多 Agent 辩论 + 强制溯源）、
+    <b>实时知识库怎么适配</b>（路由 → 增量 → 缓存失效）、<b>HNSW 为什么不线性扫描</b>（17 次 vs 10 万次）。
+    这三条已同步到知识库 README 的「🔆 强化标记清单」。
+  </div>
+  <div class="note">
+    <b>上一批（2026-09-18）：</b>覆盖第 4~9 章 —— 知识库新增 6 条（17~22）、选择题补到 <b>81 道</b>、
     开放题补到 <b>42 道</b>（新增 O-31~O-42 全是工程深度题，一半为 L4）、测验扩到 <b>107 题</b>；
     你标的 4 处 <code>==</code> 与 2 处 ❓疑问 全部处理（MCP 为什么破坏缓存 / Tool RAG 核心目的到底选哪个）。
     测验页章节筛选同步扩到 ch00~ch09。
   </div>
   <div class="note">
-    <b>上一批：</b>覆盖第 0~3 章 —— 知识库新增 7 条（10~16）、选择题补到 72 道、开放题补到 30 道、
+    <b>更早一批：</b>覆盖第 0~3 章 —— 知识库新增 7 条（10~16）、选择题补到 72 道、开放题补到 30 道、
     测验扩到 <b>90 题</b>；并把你写的 3 处 ❓疑问 全部正面回答（位置编码 / 意图识别 / 多工具硬编码）。
     测验支持按章节筛选、<b>交卷后统一判分</b>、错题自动入池。
   </div>
@@ -218,20 +226,25 @@
 │   ├── ch07-Agent 的记忆系统.md        ✅ 含三层架构 + 召回评分公式
 │   ├── ch08-意图识别与决策中枢.md      ✅ 含 ❓疑问（Tool RAG 选 A 还是 B）
 │   ├── ch09-Agent 运行时：Loop 引擎与沙箱.md  ✅ 含三层防御图 + 稳定性表
+│   ├── ch10-Harness 工程：大脑的工程化外壳.md ✅ 含三范式对比 + 六大组件 + Hooks 四类
+│   ├── ch11-RAG：检索增强生成.md             ✅ 含 3 处 ==高亮==（冲突取舍 / 实时知识 / HNSW）
+│   ├── ch12-LLM-Wiki：知识编译与持久化.md     ✅ 含两种形态对比 + 四信号关联度 + Lint
 │   └── ToPractice.md                  🎯 待动手清单（ch04~ch09 各 1~2 项）
-├── 1-知识库/                    ② 沉淀层（按知识点重组，22 条）
+├── 1-知识库/                    ② 沉淀层（按知识点重组，25 条）
 │   ├── README.md                    索引 + 总表 + 🔆强化清单 + 原文落点 + ❓疑问索引
 │   ├── 01~09  （ch00/ch01）          Agent 全景 · Token · Transformer · 训练 · Prompt
 │   │                                 Embedding · Function Calling · 选型 · 思维框架
 │   ├── 10~16  （ch02/ch03）          四模块 · 8步链路与调度 · 权限可逆性 · Agent Loop
 │   │                                 工具 Schema 与异常 · 多工具与成本 · 边界与混合架构
-│   └── 17~22  （ch04~ch09）          Prompt 模板化与 PromptOps · 上下文工程与消息裁剪
-│                                     ReAct 与推理范式家族 · Agent 记忆系统
-│                                     任务分类与多 Agent 选型 · Agent 运行时与安全沙箱
+│   ├── 17~22  （ch04~ch09）          Prompt 模板化与 PromptOps · 上下文工程与消息裁剪
+│   │                                 ReAct 与推理范式家族 · Agent 记忆系统
+│   │                                 任务分类与多 Agent 选型 · Agent 运行时与安全沙箱
+│   └── 23~25  （ch10~ch12）          Harness 工程与六大组件 · RAG 检索增强生成
+│                                     LLM-Wiki 与知识持久化
 ├── 2-面试题库/                  ③ 冲刺层
-│   ├── README.md                    六手法 + 四级深度 + 复习法
-│   ├── 01-选择题-原题与解析.md        ch00~ch03 原题 72 道 + ch04~ch09 记录题 9 道
-│   └── 02-开放题-口述版.md            O-01 ~ O-42（基础 17 · 🔆强化 5 · 🆕ch02/03 8 · 🆕ch04~09 12）
+│   ├── README.md                    六手法 + 四级深度 + 复习法 + 58 道开放题的五批索引
+│   ├── 01-选择题-原题与解析.md        ch00~ch03 原题 72 道 + ch04~ch09 记录题 9 道 + ch10~ch12 记录题 9 道
+│   └── 02-开放题-口述版.md            O-01 ~ O-58（基础 17 · 🔆强化 5 · ch02/03 8 · ch04~09 12 · 🆕ch10~12 16）
 ├── 3-测验/index.html            ④ 测验工具（单文件，离线可用）
 │                                   107 题 = 章节记录题 81 + 强化派生 26；章节筛选 ch00~ch09
 ├── 4-code/                      ⑤ 配套代码（uv + Python 3.12）
@@ -252,9 +265,9 @@
     <tr><td class="c">7</td><td>Agent 的记忆系统</td><td>20（新增）</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
     <tr><td class="c">8</td><td>意图识别与决策中枢</td><td>21（新增）· 11（扩写）</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
     <tr><td class="c">9</td><td>Agent 运行时：Loop 引擎与沙箱</td><td>22（新增）· 13（扩写）</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
-    <tr><td class="c">10</td><td>Harness 工程：大脑的工程化外壳</td><td>新增 Harness 工程</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
-    <tr><td class="c">11</td><td>RAG：检索增强生成</td><td>06（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
-    <tr><td class="c">12</td><td>LLM-Wiki：项目知识文件</td><td>06（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
+    <tr><td class="c">10</td><td>Harness 工程：大脑的工程化外壳</td><td><b>23（新增）</b>· 22（扩写）</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
+    <tr><td class="c">11</td><td>RAG：检索增强生成</td><td><b>24（新增）</b>· 06（扩写）</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
+    <tr><td class="c">12</td><td>LLM-Wiki：项目知识文件</td><td><b>25（新增）</b>· 24（互补边界）</td><td class="c"><span class="badge b-ok">已记录</span></td></tr>
     <tr><td class="c">13</td><td>Function Calling 与工具设计</td><td>07（扩写）</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
     <tr><td class="c">14</td><td>MCP：工具的标准化接口</td><td>新增 MCP</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
     <tr><td class="c">15</td><td>Skills：工具的组合与复用</td><td>新增 Skills</td><td class="c"><span class="badge b-todo">待记录</span></td></tr>
@@ -322,14 +335,16 @@
     <div class="file"><div class="fn">0-记录区/ch02-什么是Agent.md</div><div class="fd">意图识别三方法 · 模型 vs 工具 + 你的疑问（要不要拆独立子任务）</div></div>
     <div class="file"><div class="fn">0-记录区/ch03-你的第一个Agent.md</div><div class="fd">Agent 循环 · 异常处理决策表 · 边界决策图 + 你的疑问（多工具是否需硬编码）</div></div>
     <div class="file"><div class="fn">0-记录区/ch04 ~ ch09-*.md</div><div class="fd">提示词工程 · 上下文工程 · ReAct · 记忆系统 · 决策中枢 · 运行时与沙箱（共 6 章，含 4 处 <b>==高亮==</b> 与 2 处 <b>❓疑问</b>）</div></div>
+    <div class="file"><div class="fn">0-记录区/ch10 ~ ch12-*.md</div><div class="fd">🆕 Harness 工程 · RAG 检索增强生成 · LLM-Wiki 知识持久化（共 3 章，含 <b>3 处 ==高亮==</b>：检索内容冲突 / 实时知识库 / HNSW）</div></div>
     <div class="file"><div class="fn">0-记录区/ToPractice.md</div><div class="fd">🎯 待动手清单：ch04~ch09 各留了 1~2 个可验收的实操项</div></div>
     <div class="file"><div class="fn">1-知识库/README.md</div><div class="fd">知识点总表（30 秒复习）+ 两张关系图（基础篇 / 工程篇）+ 阅读建议</div></div>
     <div class="file"><div class="fn">1-知识库/01 ~ 09-*.md（ch00 / ch01）</div><div class="fd">九条：全景 / Token / Transformer / 训练 / Prompt / Embedding / FC / 选型 / 思维框架</div></div>
     <div class="file"><div class="fn">1-知识库/10 ~ 16-*.md（ch02 / ch03）</div><div class="fd">七条：四模块 / 8步链路与调度 / 权限可逆性 / Agent Loop / 工具 Schema 与异常 / 多工具与成本 / 边界与混合架构</div></div>
     <div class="file"><div class="fn">1-知识库/17 ~ 22-*.md（ch04 ~ ch09）</div><div class="fd">六条：Prompt 模板化与 PromptOps / 上下文工程与消息裁剪 / ReAct 与推理范式家族 / Agent 记忆系统 / 任务分类与多 Agent 选型 / Agent 运行时与安全沙箱</div></div>
-    <div class="file"><div class="fn">2-面试题库/README.md</div><div class="fd">六手法 + 四级深度 + 实战示范 + 复习法 + 42 道开放题的四批索引</div></div>
-    <div class="file"><div class="fn">2-面试题库/01-选择题-原题与解析.md</div><div class="fd">ch00~ch03 原题 <b>72 道</b> + ch04~ch09 记录题 <b>9 道</b>，含易错题清单与你的答题记录</div></div>
-    <div class="file"><div class="fn">2-面试题库/02-开放题-口述版.md</div><div class="fd"><b>O-01 ~ O-42</b>，每题的参考口述 + 追问链 + 雷区（O-31~O-42 为工程深度题）</div></div>
+    <div class="file"><div class="fn">1-知识库/23 ~ 25-*.md（ch10 ~ ch12）</div><div class="fd">🆕 三条：Harness 工程与六大组件 / RAG 检索增强生成（含 3 处 🔆 强化延伸）/ LLM-Wiki 与知识持久化</div></div>
+    <div class="file"><div class="fn">2-面试题库/README.md</div><div class="fd">六手法 + 四级深度 + 实战示范 + 复习法 + 58 道开放题的五批索引</div></div>
+    <div class="file"><div class="fn">2-面试题库/01-选择题-原题与解析.md</div><div class="fd">ch00~ch03 原题 <b>72 道</b> + ch04~ch09 记录题 <b>9 道</b> + ch10~ch12 记录题 <b>9 道</b> = <b>90 道</b>，含易错题清单与你的答题记录</div></div>
+    <div class="file"><div class="fn">2-面试题库/02-开放题-口述版.md</div><div class="fd"><b>O-01 ~ O-58</b>，每题的参考口述 + 追问链 + 雷区（O-31~O-42 为工程深度题；<b>O-43~O-58 为 Harness / RAG / LLM-Wiki</b>）</div></div>
     <div class="file"><div class="fn">4-code/first_agent/</div><div class="fd">配套代码：<code>agent.py</code>（Agent 循环 + 调用链 Tracer）· <code>schema.py</code> · <code>tools/</code>（get_weather · plan_trip）· <code>TODO</code> 优化清单</div></div>
     <div class="file" style="border-color:#d6ccf7;background:#faf8ff">
       <div class="fn">3-测验/index.html</div>
