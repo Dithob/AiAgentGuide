@@ -1,0 +1,5 @@
+# 打包成 .vsix 时要排除的东西
+.vscode/**
+node_modules/**
+**/*.map
+.gitignore

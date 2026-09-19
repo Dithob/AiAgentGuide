@@ -1,0 +1,129 @@
+{
+  "name": "maodingcode",
+  "displayName": "MaoDingCode",
+  "description": "本地运行的 AI 编码助手 —— 对话式改代码，带权限确认与工具执行",
+  "version": "0.1.0",
+  "publisher": "maoding",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "copilot",
+    "coding assistant"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "maodingcode",
+          "title": "MaoDingCode",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "maodingcode": [
+        {
+          "id": "maodingcode.chat",
+          "name": "对话",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "maodingcode.openChat",
+        "title": "MaoDingCode: 打开对话面板"
+      },
+      {
+        "command": "maodingcode.sendSelection",
+        "title": "MaoDingCode: 把选中代码发给助手"
+      },
+      {
+        "command": "maodingcode.sendFile",
+        "title": "MaoDingCode: 把当前文件路径发给助手"
+      },
+      {
+        "command": "maodingcode.restart",
+        "title": "MaoDingCode: 重启 Agent 进程"
+      },
+      {
+        "command": "maodingcode.showStats",
+        "title": "MaoDingCode: 查看本轮 token 与成本"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "maodingcode.sendSelection",
+          "group": "maodingcode@1",
+          "when": "editorHasSelection"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "maodingcode.restart",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "MaoDingCode",
+      "properties": {
+        "maodingcode.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Python 解释器路径（需 3.11+）。留空则用 PATH 里的 python。"
+        },
+        "maodingcode.workspace": {
+          "type": "string",
+          "default": "",
+          "description": "Agent 的工作区根目录。留空则使用当前 VSCode 打开的第一个文件夹。"
+        },
+        "maodingcode.importRoot": {
+          "type": "string",
+          "default": "",
+          "description": "maodingcode 包的导入根目录（即包含 maodingcode/ 的那一层，本项目为 4-code/）。留空则自动取扩展所在项目的上一级——开发模式（F5）下就是对的；用 .vsix 安装到别处、或源码不在扩展目录旁时，需要手动指定。"
+        },
+        "maodingcode.permissionMode": {
+          "type": "string",
+          "enum": [
+            "suggest",
+            "auto",
+            "readonly"
+          ],
+          "default": "suggest",
+          "description": "权限模式。suggest：写文件放行、执行命令需确认；auto：全部放行；readonly：只读。"
+        },
+        "maodingcode.autoApprove": {
+          "type": "boolean",
+          "default": false,
+          "description": "自动同意所有权限确认。等价于把权限模式设为 auto，请谨慎开启。"
+        },
+        "maodingcode.noStream": {
+          "type": "boolean",
+          "default": false,
+          "description": "关闭流式输出。网络不稳时可以打开。"
+        },
+        "maodingcode.maxSteps": {
+          "type": "number",
+          "default": 25,
+          "description": "单轮任务的最大步数。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "node --check extension.js && node --check media/main.js"
+  },
+  "dependencies": {}
+}

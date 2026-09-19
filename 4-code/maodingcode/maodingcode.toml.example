@@ -1,0 +1,63 @@
+# MaoDingCode 项目配置示例
+#
+# 放在工作区根目录，文件名固定为 maodingcode.toml。
+# 优先级：内置默认值 < .env / 环境变量 < 本文件 < 命令行参数
+#
+# 这个文件可以进版本库（不含密钥）；密钥请放 .env。
+
+[model]
+# 任何兼容 OpenAI /chat/completions 的服务都能接
+provider = "deepseek"
+base_url = "https://api.deepseek.com/v1"
+name = "deepseek-chat"
+temperature = 0.2
+max_tokens = 8192
+# 上下文窗口，用于预算与裁剪决策
+context_window = 128000
+
+# 成本估算用的千 token 单价（与厂商计价单位一致即可，通常为人民币）
+# 不填就不估算成本，/cost 里会显示"未配置单价"
+price_in_per_1k = 0.002
+price_out_per_1k = 0.008
+
+[agent]
+# 单轮最多多少步（一次模型调用算一步）
+max_steps = 25
+# 最近多少轮对话不参与折叠
+keep_recent_turns = 6
+stream = true
+# 技能搜索目录，相对工作区根目录
+skill_dirs = [".maodingcode/skills", "skills"]
+
+[security]
+# suggest：写文件自动放行，执行命令和不可逆操作需要确认（推荐）
+# auto   ：全部自动放行（只在你完全信任的目录里用）
+# readonly：只允许只读工具，适合"让 Agent 先看看"的场景
+permission_mode = "suggest"
+
+# 追加的危险命令正则，命中即拒绝（已有内置规则，这里只补你自己的）
+command_denylist = [
+  "kubectl\\s+delete\\s+namespace",
+  "terraform\\s+destroy",
+]
+
+# 允许写入工作区之外的额外目录
+writable_extra = []
+
+# 单条 shell 命令超时秒数
+shell_timeout = 60.0
+
+# ---------------------------------------------------------------- MCP 服务
+# 每个 [[mcp.servers]] 是一个外部 MCP Server。
+# 单个 Server 连接失败不会影响启动，用 /mcp 查看连接状态。
+
+# [[mcp.servers]]
+# name = "filesystem"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/dir"]
+# enabled = true
+
+# [[mcp.servers]]
+# name = "remote-tools"
+# url = "https://your-mcp-server.example.com/mcp"
+# enabled = true

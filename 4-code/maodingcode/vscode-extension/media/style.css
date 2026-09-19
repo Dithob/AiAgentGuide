@@ -1,0 +1,355 @@
+/* 全部颜色走 VSCode 主题变量，这样浅色/深色主题都能自动适配，
+   不需要自己维护两套配色。 */
+:root {
+  --gap: 10px;
+  --radius: 6px;
+  --mono: var(--vscode-editor-font-family, Consolas, "Courier New", monospace);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ------------------------------------------------------------------ 顶栏 */
+#bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+
+#bar .spacer {
+  flex: 1;
+}
+
+#model {
+  color: var(--vscode-descriptionForeground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.dot.on {
+  background: var(--vscode-testing-iconPassed, #3fb950);
+}
+
+.dot.off {
+  background: var(--vscode-descriptionForeground, #888);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--vscode-icon-foreground, inherit);
+  border: none;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.ghost:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.2));
+}
+
+/* ------------------------------------------------------------------ 消息区 */
+#log {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.msg {
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.msg.user {
+  background: var(--vscode-inputOption-activeBackground, rgba(90, 140, 255, 0.15));
+  border-left: 3px solid var(--vscode-focusBorder, #5a8cff);
+}
+
+.msg.assistant {
+  background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.08));
+}
+
+.msg .role {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 4px;
+}
+
+.msg pre {
+  background: var(--vscode-textCodeBlock-background, rgba(128, 128, 128, 0.15));
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+.msg code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--vscode-textCodeBlock-background, rgba(128, 128, 128, 0.15));
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.cursor::after {
+  content: "▋";
+  animation: blink 1s steps(2, start) infinite;
+  color: var(--vscode-descriptionForeground);
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* ------------------------------------------------------------------ 工具卡 */
+.tool {
+  border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.3));
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.tool .head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.08));
+}
+
+.tool .name {
+  font-weight: 600;
+}
+
+.tool .meta {
+  margin-left: auto;
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+}
+
+.tool .body {
+  padding: 6px 8px;
+  border-top: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 260px;
+  overflow-y: auto;
+  color: var(--vscode-descriptionForeground);
+}
+
+.tool.collapsed .body {
+  display: none;
+}
+
+.tool.ok {
+  border-color: var(--vscode-testing-iconPassed, #3fb950);
+}
+
+.tool.fail {
+  border-color: var(--vscode-testing-iconFailed, #f85149);
+}
+
+.tool.fail .body {
+  color: var(--vscode-errorForeground, #f85149);
+}
+
+.spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------------ 确认卡 */
+.confirm {
+  border: 1px solid var(--vscode-editorWarning-foreground, #d29922);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  background: var(--vscode-inputValidation-warningBackground, rgba(210, 153, 34, 0.1));
+}
+
+.confirm .title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.confirm .reason {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.confirm pre {
+  background: var(--vscode-textCodeBlock-background, rgba(128, 128, 128, 0.15));
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-x: auto;
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.confirm .buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.confirm .buttons button {
+  flex: 1;
+}
+
+.confirm.done .buttons {
+  display: none;
+}
+
+.confirm.done .reason::after {
+  content: "（已处理）";
+  margin-left: 6px;
+}
+
+/* ------------------------------------------------------------------ 统计 */
+.stats {
+  border: 1px dashed var(--vscode-panel-border, rgba(128, 128, 128, 0.4));
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  white-space: pre-wrap;
+  font-family: var(--mono);
+}
+
+.notice {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  text-align: center;
+  padding: 4px;
+}
+
+.notice.error {
+  color: var(--vscode-errorForeground, #f85149);
+}
+
+/* ------------------------------------------------------------------ 输入区 */
+#composer {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#input {
+  width: 100%;
+  resize: vertical;
+  min-height: 44px;
+  max-height: 220px;
+  padding: 6px 8px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, 0.35));
+  border-radius: 4px;
+  outline: none;
+}
+
+#input:focus {
+  border-color: var(--vscode-focusBorder);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint {
+  flex: 1;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.primary {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+button.primary:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+button.primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.secondary {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}

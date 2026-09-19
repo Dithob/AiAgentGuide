@@ -1,0 +1,18 @@
+# MaoDingCode 的依赖刻意保持极少：核心只跑标准库，零第三方依赖。
+#
+# 之所以一行都不需要，是因为：
+#   - 模型调用：用 urllib + JSON 手写 OpenAI 兼容请求（provider/openai_compat.py）
+#   - .env 解析：十行代码搞定（config.py 的 _load_dotenv）
+#   - TOML 解析：Python 3.11+ 标准库自带 tomllib
+#   - MCP stdio：subprocess + JSON-RPC 手写（mcp/client.py）
+#
+# 下面这些是可选增强，需要时再装。
+
+# --- 可选：用 openai SDK 替换手写 HTTP 调用 ---
+# openai>=1.40.0
+
+# --- 可选：本地命令补全与语法高亮 ---
+# prompt_toolkit>=3.0.43
+
+# --- 可选：更精细的 token 计数 ---
+# tiktoken>=0.7.0
