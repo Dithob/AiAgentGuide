@@ -5,8 +5,11 @@ __pycache__/
 # macOS 系统文件
 .DS_Store
 
-# WorkBuddy 工作区数据（会话记忆 / 工作日志，不纳入版本管理）
-.workbuddy/
+# WorkBuddy 工作区数据：默认整体忽略
+# （memory/ 是工作日志与会话记忆，含本机绝对路径与用户名，不进 public 仓库）
+.workbuddy/*
+# 例外：沉淀工作流 skill 随仓库走（纯工作流文档，不含个人信息）
+!.workbuddy/skills/
 
 # 测验构建/测试的临时产物（每次运行都会重新生成）
 tools/_test.txt
