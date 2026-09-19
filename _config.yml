@@ -32,6 +32,8 @@ exclude:
   - tools/
   - src/
   - backup/
+  - docs/
+  - AGENTS.md
   - package.json
   - pyproject.toml
   - uv.lock
