@@ -4,6 +4,12 @@
 > **标签**：#AgentLoop #ReAct #工程实现　|　**代码**：`4-code/first_agent/agent.py`
 > **关联**：10（闭环）、07（Function Calling）、17（边界）
 
+## ⚡ TL;DR（先看这三行，下面正文是参考资料）
+
+- **一句话**：Agent 的核心就是**一个 `while True` 循环**：感知 → 决策 → 行动 → 观察 → 循环（ReAct 的简化版）。
+- **三要点**：①**何时停**：AI 不再请求 tool_calls（finish_reason=stop），由 AI 自己决定；②必须设 **`max_loops`** 兜底，否则可能一直调工具不回头；③**多轮对话 = Agent 的记忆**，历史在 `messages` 里累积，所以追问可以不调工具直接答。
+- **追问**：Agent 循环什么时候停？怎么防止死循环？（→ [O-27](../2-面试题库/开放题/13-Agent-Loop与多轮对话.md)）
+
 ---
 
 ## 🎯 30 秒结论

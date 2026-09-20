@@ -208,7 +208,7 @@
     <li><b>读的过程中</b>只填「📖 正文要点」，不要停下来精修。</li>
     <li><b>读完立刻做课后选择题</b>，只写「选了哪个 + 一句话解析 + 考点 + 衍生开放题」。</li>
     <li><b>想到的疑问</b>丢进「❓ 疑问」，不要现场查。</li>
-    <li><b>二次整理</b>：要点按知识点归并进 <code>1-知识库/</code>；选择题去选项化，衍生题写进 <code>2-面试题库/02-开放题-口述版.md</code>。</li>
+    <li><b>二次整理</b>：要点按知识点归并进 <code>1-知识库/</code>；选择题去选项化，衍生题写进 <code>2-面试题库/开放题/</code> 下对应知识点的文件。</li>
     <li><b>复习</b>：30 秒看知识库总表 → 3 分钟出声讲开放题，卡壳就回查卡片。</li>
   </ol>
 
@@ -248,7 +248,8 @@
 ├── 2-面试题库/                  ③ 冲刺层
 │   ├── README.md                    六手法 + 四级深度 + 复习法 + 58 道开放题的五批索引
 │   ├── 01-选择题-原题与解析.md        ch00~ch03 原题 72 道 + ch04~ch09 记录题 9 道 + ch10~ch12 记录题 9 道
-│   └── 02-开放题-口述版.md            O-01 ~ O-58（基础 17 · 🔆强化 5 · ch02/03 8 · ch04~09 12 · 🆕ch10~12 16）
+│   ├── 02-开放题-口述版.md            入口页：按知识点的分布表 + 使用节奏（题目正文已迁到 开放题/）
+│   └── 开放题/                      58 道按知识点拆成 24 个小文件（O-01 ~ O-58，全局编号不变）
 ├── 3-测验/index.html            ④ 测验工具（单文件，离线可用）
 │                                   119 题 = 章节记录题 90 + 强化派生 29；章节筛选 ch00~ch12
 ├── 4-code/                      ⑤ 配套代码容器（两个独立 demo）
@@ -352,7 +353,7 @@
     <div class="file"><div class="fn">1-知识库/23 ~ 25-*.md（ch10 ~ ch12）</div><div class="fd">🆕 三条：Harness 工程与六大组件 / RAG 检索增强生成（含 3 处 🔆 强化延伸）/ LLM-Wiki 与知识持久化</div></div>
     <div class="file"><div class="fn">2-面试题库/README.md</div><div class="fd">六手法 + 四级深度 + 实战示范 + 复习法 + 58 道开放题的五批索引</div></div>
     <div class="file"><div class="fn">2-面试题库/01-选择题-原题与解析.md</div><div class="fd">ch00~ch03 原题 <b>72 道</b> + ch04~ch09 记录题 <b>9 道</b> + ch10~ch12 记录题 <b>9 道</b> = <b>90 道</b>，含易错题清单与你的答题记录</div></div>
-    <div class="file"><div class="fn">2-面试题库/02-开放题-口述版.md</div><div class="fd"><b>O-01 ~ O-58</b>，每题的参考口述 + 追问链 + 雷区（O-31~O-42 为工程深度题；<b>O-43~O-58 为 Harness / RAG / LLM-Wiki</b>）</div></div>
+    <div class="file"><div class="fn">2-面试题库/开放题/（24 个小文件）</div><div class="fd"><b>O-01 ~ O-58</b> 按知识点拆分，每题的参考口述 + 追问链 + 雷区；每篇顶部带<b>掌握度勾选</b>（认得 / 能讲 / 能讲+追问）。<code>02-开放题-口述版.md</code> 已降级为入口页</div></div>
     <div class="file"><div class="fn">4-code/first_agent/</div><div class="fd">配套代码：<code>agent.py</code>（Agent 循环 + 调用链 Tracer）· <code>schema.py</code> · <code>tools/</code>（get_weather · plan_trip）· <code>TODO</code> 优化清单</div></div>
     <div class="file" style="border-color:#cfe3d4;background:#f7fbf8">
       <div class="fn">4-code/maodingcode/</div>
